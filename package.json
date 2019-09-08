@@ -30,7 +30,6 @@
   },
   "homepage": "https://github.com/qiuwenwu/mm_mysql#readme",
   "dependencies": {
-    "mm_expand": "^1.0.0",
     "mysql": "^2.17.1"
   }
 }
