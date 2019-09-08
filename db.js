@@ -1,4 +1,4 @@
-const Sql = require('../sql');
+const Sql = require('mm_sql');
 
 /**
  * @class 数据库操作类
