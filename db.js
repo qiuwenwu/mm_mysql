@@ -17,9 +17,11 @@ class DB extends Sql {
 		// 数据库名
 		this.database = database;
 
-		/// 获取所有表名
-		/// table: 表名关键词 (string)
-		/// 返回: 表名数组 (promise|array)
+		/**
+		 * @description 获取所有表名
+		 * @param {String} table 表名关键词, 可以 *table*包含、*table后缀、table*前缀 查询
+		 * @return {Promise|Array} 表名数组
+		 */
 		DB.prototype.tables = async function(table) {
 			var list = await this.run("show tables");
 			var key = 'Tables_in_' + this.database;
@@ -29,17 +31,22 @@ class DB extends Sql {
 			return list.getArr(key);
 		};
 
-		/// 获取所有表字段
-		/// table: 表名 (string)
-		/// 返回: 字段信息列表 (promise|array)
-		DB.prototype.fields = async function(table) {
+		/**
+		 * @description 获取所有表字段
+		 * @param {String} table 表名
+		 * @return {Promise|Array} 字段信息列表
+		 */
+		DB.prototype.fields = async function(table, field_name) {
 			if (!table) {
 				table = this.table;
 			}
 			var field =
-				'COLUMN_NAME as `name`,ORDINAL_POSITION as `cid`,COLUMN_DEFAULT as `dflt_value`,IS_NULLABLE as `notnull`,COLUMN_TYPE as `type`,COLUMN_KEY as `pk`,COLUMN_COMMENT as `note`';
+				'COLUMN_NAME as `name`,ORDINAL_POSITION as `cid`,COLUMN_DEFAULT as `dflt_value`,IS_NULLABLE as `notnull`,COLUMN_TYPE as `type`,COLUMN_KEY as `pk`,EXTRA as `auto`,COLUMN_COMMENT as `note`';
 			var sql = "select " + field + " from information_schema.COLUMNS where `table_name` = '" + table +
-				"' and `table_schema` = '" + this.database + "';";
+				"' and `table_schema` = '" + this.database + "'";
+			if (field_name) {
+				sql += " AND COLUMN_NAME='" + field_name + "'";
+			}
 			var list = await this.run(sql);
 			for (var i = 0; i < list.length; i++) {
 				list[i].pk = list[i].pk ? true : false;
@@ -48,11 +55,14 @@ class DB extends Sql {
 			return list;
 		};
 
-		/// 设置类型
-		/// type: 类型名 (string) 常用类型 mediumint, int, varchar
-		/// auto: 是否自增字段 (默认为自增字段)
-		/// 返回: 类型
-		DB.prototype.setType = function(type, auto) {
+		/**
+		 * @description 设置类型
+		 * @param {String} type 类型名，常用类型 mediumint, int, varchar, datetime
+		 * @param {Boolean} auto 自动
+		 * @param {String} filed 字段名
+		 * @return {String} 返回最终类型
+		 */
+		DB.prototype.setType = function(type, auto, filed) {
 			if (!type) {
 				type = 'int';
 			}
@@ -60,11 +70,11 @@ class DB extends Sql {
 				case "str":
 				case "varchar":
 				case "string":
-					type = "varchar(255) NOT NULL";
+					type = "varchar(255)";
 					break;
 				case "number":
 					type = "int(11) UNSIGNED NOT NULL";
-					if (auto || auto === undefined) {
+					if (auto) {
 						type += "AUTO_INCREMENT";
 					}
 					break;
@@ -72,12 +82,34 @@ class DB extends Sql {
 				case "tinyint":
 					type = "tinyint(1) UNSIGNED NOT NULL";
 					break;
+				case "datetime":
+					type += " DEFAULT '1970-01-01 00:00:00'";
+					break;
+				case "timestamp":
+					if (auto) {
+						if (filed.indexOf('update') !== -1 || filed.indexOf('last') !== -1) {
+							type += " DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+						} else {
+							type += " DEFAULT CURRENT_TIMESTAMP";
+						}
+					} else {
+						type += " DEFAULT 0";
+					}
+					break;
+				case "date":
+					type += " NOT NULL DEFAULT '1970-01-01'";
+					break;
+				case "time":
+					type += " NOT NULL DEFAULT '00:00:00'";
+					break;
+				case "text":
+					break;
 				default:
-					if (type.indexOf('int') == -1) {
+					if (type.indexOf('int') === -1) {
 						type += " NOT NULL";
 					} else {
 						type += " UNSIGNED NOT NULL";
-						if (auto || auto === undefined) {
+						if (auto) {
 							type += " AUTO_INCREMENT";
 						}
 					}
@@ -86,12 +118,14 @@ class DB extends Sql {
 			return type;
 		};
 
-		/// 创建数据表
-		/// table: 表名 (string)
-		/// field: 主键字段名 (string)
-		/// type: 类型名 (string) 常用类型 mediumint, int, varchar
-		/// auto: 是否自增字段, 默认为自增字段 (bool)
-		/// 返回: 执行结果 (promise|bool)
+		/**
+		 * @description 创建数据表
+		 * @param {String} table 表名
+		 * @param {String} field 主键字段名
+		 * @param {String} type  类型名，常用类型 mediumint, int, varchar
+		 * @param {Boolean} auto 是否自增字段, 默认为自增字段
+		 * @return {Promise|Number} 创建成功返回1，失败返回0
+		 */
 		DB.prototype.addTable = async function(table, field, type, auto) {
 			if (!field) {
 				field = "id";
@@ -101,41 +135,40 @@ class DB extends Sql {
 			return await this.exec(sql);
 		};
 
-		/// 添加字段
-		/// field: 字段名 (string)
-		/// type: 类型名 (string) 常用类型 mediumint, int, float, double, varchar, tinyint, text, date, datetime, time
-		/// value: 默认值 (string|number)
-		/// isKey: 是否主键
-		/// 返回: 添加成功返回1, 失败返回0 (promise|bool)
-		DB.prototype.field_add = async function(field, type, value, isKey) {
+		/**
+		 * @description 添加字段
+		 * @param {String} field 字段名
+		 * @param {String} type 类型名，常用类型 mediumint, int, float, double, varchar, tinyint, text, date, datetime, time, timestamp
+		 * @param {String|Number} value 默认值
+		 * @param {Boolean} auto 是否自动（如果为数字类型则自增增段，如果为时间类型则默认事件）
+		 * @param {Boolean} isKey 是否主键
+		 * @return {Promise|Number} 添加成功返回1，失败返回0
+		 */
+		DB.prototype.field_add = async function(field, type, value, auto, isKey) {
 			var sql =
 				"SELECT COUNT(*) as `count` FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='{0}' AND table_name='{1}' AND COLUMN_NAME='{2}'";
 			sql = sql.replace('{0}', this.database).replace('{1}', this.table).replace('{2}', field);
 			var arr = await this.run(sql);
 			if (arr && arr.length > 0) {
 				if (arr[0].count == 0) {
-					var type = this.setType(type, false);
+					var type = this.setType(type, auto, field);
 					if (value !== undefined) {
-						if (typeof(value) == 'string') {
-							type += " DEFAULT '" + value + "'";
-						} else {
-							type += " DEFAULT " + value;
+						if (type.indexOf('CURRENT_') === -1) {
+							if (typeof(value) == 'string' && !value.startWith('CURRENT_')) {
+								type += " DEFAULT '" + value + "'";
+							} else if (!auto) {
+								type += " DEFAULT " + value;
+							}
 						}
 					} else if (type.has('varchar') || type.has('text')) {
 						type = type.replace('NOT NULL', '');
-					} else if (type.has('dateTime')) {
-						type += " DEFAULT '1970-01-01 00:00:00'";
-					} else if (type.has('date')) {
-						type += " DEFAULT '1970-01-01'";
-					} else if (type.has('time')) {
-						type += " DEFAULT '00:00:00'";
-					} else {
+					} else if (type.indexOf('DEFAULT') === -1 && type.indexOf('AUTO') === -1) {
 						type += " DEFAULT 0";
 					}
-					var sql = "ALTER Table `{0}` ADD `{1}` {2}".replace('{0}', this.table).replace('{1}', field).replace('{2}',
-						type);
+					var sql = "ALTER Table `{0}` ADD `{1}` {2}";
+					sql = sql.replace('{0}', this.table).replace('{1}', field).replace('{2}', type);
 					if (isKey) {
-						sql += ", ADD PRIMARY KEY (`{0}`)".replace('{0}', field);
+						sql += " PRIMARY KEY";
 					}
 					return await this.exec(sql);
 				}
@@ -144,9 +177,57 @@ class DB extends Sql {
 		};
 
 		/**
+		 * @description 添加字段
+		 * @param {String} field 字段名
+		 * @param {String} type 类型名，常用类型 mediumint, int, float, double, varchar, tinyint, text, date, datetime, time, timestamp
+		 * @param {String|Number} value 默认值
+		 * @param {Boolean} auto 是否自动（如果为数字类型则自增增段，如果为时间类型则默认事件）
+		 * @param {Boolean} isKey 是否主键
+		 * @param {String} new_name 新名称
+		 * @return {Promise|Number} 添加成功返回1，失败返回0
+		 */
+		DB.prototype.field_set = async function(field, type, value, auto, isKey, new_name) {
+			var sql =
+				"SELECT COUNT(*) as `count` FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='{0}' AND table_name='{1}' AND COLUMN_NAME='{2}'";
+			sql = sql.replace('{0}', this.database).replace('{1}', this.table).replace('{2}', field);
+			var arr = await this.run(sql);
+			if (arr && arr.length > 0) {
+				if (arr[0].count == 0) {
+					return 0;
+				}
+			}
+
+			var type = this.setType(type, auto, field);
+			if (value !== undefined) {
+				if (type.indexOf('CURRENT_') === -1) {
+					if (typeof(value) == 'string' && !value.startWith('CURRENT_')) {
+						type += " DEFAULT '" + value + "'";
+					} else if (!auto) {
+						type += " DEFAULT " + value;
+					}
+				}
+			} else if (type.has('varchar') || type.has('text')) {
+				type = type.replace('NOT NULL', '');
+			} else if (type.indexOf('DEFAULT') === -1 && type.indexOf('AUTO') === -1) {
+				type += " DEFAULT 0";
+			}
+
+			if (!new_name) {
+				new_name = field;
+			}
+
+			sql = "alter table `{0}` change `{1}` `{2}` {3}";
+			sql = sql.replace('{0}', this.table).replace('{1}', field).replace('{2}', new_name).replaceAll('{3}', type);
+			if (isKey) {
+				sql += " PRIMARY KEY";
+			}
+			return await this.exec(sql);
+		};
+
+		/**
 		 * @description 删除字段
-		 * @param {Object} field 字段名
-		 * @return {Number} 删除成功返回1，失败返回0
+		 * @param {String} field 字段名
+		 * @return {Promise|Number} 删除成功返回1，失败返回0
 		 */
 		DB.prototype.field_del = async function(field) {
 			var sql =
@@ -160,6 +241,61 @@ class DB extends Sql {
 				}
 			}
 			return 0;
+		};
+
+		/**
+		 * @description 拼接字段信息SQL
+		 * @param {Object} fd 字段信息
+		 * @return {String} sql语段
+		 */
+		DB.prototype.field_sql = function(fd) {
+			var sql = "`{0}`".replace('{0}', fd.name);
+			sql += " " + fd.type;
+			if (fd.notnull) {
+				sql += " NOT NULL";
+			}
+			if (fd.auto) {
+				if (fd.dflt_value) {
+					if (fd.dflt_value === '0000-00-00 00:00:00') {
+						fd.dflt_value = 'CURRENT_TIMESTAMP';
+					}
+					sql += " DEFAULT " + fd.dflt_value;
+				}
+				sql += " " + fd.auto;
+			} else if (fd.dflt_value) {
+				if (fd.dflt_value === '0000-00-00 00:00:00') {
+					fd.dflt_value = '1970-01-01 00:00:00';
+				}
+				sql += " DEFAULT " + fd.dflt_value;
+			}
+			if (fd.note) {
+				sql += " COMMENT '" + fd.note + "'";
+			}
+			if (fd.pk) {
+				sql += " PRIMARY KEY";
+			}
+			return sql;
+		};
+
+		/**
+		 * @description 修改字段名称
+		 * @param {String} field 字段名
+		 * @param {String} name 变更后名称
+		 * @return {Promise|Number} 修改成功返回1，失败返回0
+		 */
+		DB.prototype.field_name = async function(field, name) {
+			var fields = await this.fields(this.table, field);
+			if (!fields) {
+				return -1;
+			}
+			if (fields.length === 0) {
+				return 0;
+			}
+			var sql_sub = this.field_sql(fields[0]);
+			sql_sub = sql_sub.replace("`" + field + "`", "`" + name + "`").replace(' PRIMARY KEY', '');
+			var sql = "alter table `{0}` change `{1}` " + sql_sub;
+			sql = sql.replace('{0}', this.table).replace('{1}', field);
+			return await this.exec(sql);
 		};
 	}
 }

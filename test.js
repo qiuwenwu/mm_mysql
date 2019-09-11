@@ -51,20 +51,268 @@ async function test() {
 
 test();
 
-async function testTable() {
-	var sql = new Mysql();
-	sql.open();
-	db = sql.db();
-	var bl;
-	db.table = 'test8';
-	bl = await db.field_del('set6');
-	bl = await db.field_add('set6', 'str');
-	//bl = await db.field_add("age6", 'mediumint', 0, true);
-	console.log("结果：" + bl);
-	var arr = await db.tables('t2*');
-	console.log("表名" + $.toJson(arr));
-	var list = await db.fields('test');
-	console.log("字段信息" + $.toJson(list));
-}
+// 
+// async function addField() {
+// 	var sql = new Mysql();
+// 	sql.open();
+// 	db = sql.db();
+// 	var num = 0;
+// 	db.table = 'test9';
+// 	// num = await db.field_del('set6');
+// 	// num = await db.field_add('set6', 'str');
+// 	// db.addTable('test9', 'uid', 'int', true);
+// 	num = await db.field_add("uid", 'int', 0, true, true);
+// 	console.log("uid结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("username", 'varchar(18)', '');
+// 	console.log("username结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("password", 'string', null);
+// 	console.log("password结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("email", 'varchar', null);
+// 	console.log("email结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("age", 'smallint', 0);
+// 	console.log("age结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("sex", 'tinyint', 0);
+// 	console.log("sex结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("create_time", 'timestamp');
+// 	console.log("create_time结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("last_time", 'timestamp', null, true, false);
+// 	console.log("last_time结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("birthday", 'date');
+// 	console.log("birthday结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("note", 'text', null, true, false);
+// 	console.log("note结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("cycle", 'time', null, true, false);
+// 	console.log("cycle结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	
+// 	num = await db.field_add("money", 'double', 0);
+// 	console.log("money结果：" + num);
+// 	if(num < 0){
+// 		console.log("SQL：" + db.sql);
+// 	}
+// }
+// 
+// addField();
 
-testTable();
+
+// 
+// async function setField() {
+// 	var sql = new Mysql();
+// 	sql.open();
+// 	db = sql.db();
+// 	var num = 0;
+// 	db.table = 'test9';
+// 	num = await db.field_set("uid", 'int', 0, true);
+// 	console.log("uid结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("username", 'varchar(18)', '');
+// 	console.log("username结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("password", 'string', null);
+// 	console.log("password结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("email", 'varchar', null);
+// 	console.log("email结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("age", 'bigint', 0);
+// 	console.log("age结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("sex", 'int', 0);
+// 	console.log("sex结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("create_time", 'datetime');
+// 	console.log("create_time结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("last_time", 'timestamp', null, true, false);
+// 	console.log("last_time结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("birthday", 'datetime');
+// 	console.log("birthday结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("note", 'text', null, true, false);
+// 	console.log("note结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("cycle", 'date', null, true, false);
+// 	console.log("cycle结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_set("money", 'float', 0);
+// 	console.log("money结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// }
+// 
+// setField();
+
+
+// 
+// async function delField() {
+// 	var sql = new Mysql();
+// 	sql.open();
+// 	db = sql.db();
+// 	var num = 0;
+// 	db.table = 'test9';
+// 	num = await db.field_del("uid");
+// 	console.log("uid结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("username");
+// 	console.log("username结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("password");
+// 	console.log("password结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("email");
+// 	console.log("email结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("age");
+// 	console.log("age结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("sex");
+// 	console.log("sex结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("create_time");
+// 	console.log("create_time结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("last_time");
+// 	console.log("last_time结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("birthday");
+// 	console.log("birthday结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("note");
+// 	console.log("note结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("cycle");
+// 	console.log("cycle结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 
+// 	num = await db.field_del("money");
+// 	console.log("money结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// }
+// 
+// delField();
+
+
+// async function newName() {
+// 	var sql = new Mysql();
+// 	sql.open();
+// 	db = sql.db();
+// 	var num = 0;
+// 	db.table = 'test9';
+// 	num = await db.field_name("last_time", 'last_time');
+// 	console.log("name结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// }
+// newName();

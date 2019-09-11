@@ -137,6 +137,7 @@ class Mysql {
 				});
 			});
 		};
+		
 		/**
 		 * @description 增删改sql
 		 * @param {String} sql 查询参
@@ -146,6 +147,7 @@ class Mysql {
 		Mysql.prototype.exec = function(sql, val) {
 			var _this = this;
 			this.sql = sql;
+
 			// 返回一个 Promise
 			return new Promise((resolve, reject) => {
 				$this.conn.getConnection(function(err, db) {
@@ -173,14 +175,25 @@ class Mysql {
 										o.map(function(item) {
 											num += item['affectedRows'];
 										});
-										resolve(num);
+										if (num === 0) {
+											resolve(o.length);
+										} else {
+											resolve(num);
+										}
 									} else {
-										_this.results = [{}];
-										resolve(0);
+										_this.results = [{
+											count: 1
+										}];
+										resolve(1);
 									}
 								} else {
 									_this.results = [o];
-									resolve(o['affectedRows']);
+									var num = o['affectedRows'];
+									if (num === 0) {
+										resolve(1);
+									} else {
+										resolve(num);
+									}
 								}
 							}
 							// 结束会话
@@ -190,6 +203,7 @@ class Mysql {
 				});
 			});
 		};
+		
 		/**
 		 * @description 获取数据库管理器
 		 */
