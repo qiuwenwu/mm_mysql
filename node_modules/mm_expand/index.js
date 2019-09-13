@@ -313,10 +313,15 @@ function push(objA, objB, bl) {
 /**
  * @description 转为json字符串
  * @param {Object} obj 被转换的对象
+ * @param {Boolean} format 是否格式化
  * @return {String} json格式字符串
  */
-function toJson(obj) {
-	return JSON.stringify(obj);
+function toJson(obj, format) {
+	if (format) {
+		return JSON.stringify(obj, null, 4);
+	} else {
+		return JSON.stringify(obj);
+	}
 }
 
 /**
@@ -472,9 +477,11 @@ if (typeof($) === "undefined") {
 		/**
 		 * @description 字典，用于查询变量替换名
 		 * @property {String} session_id session的ID
+		 * @property {String} user_id 用户的ID，用于数据库时查询用户唯一标识
 		 */
 		dict: {
-			session_id: "mm:uuid"
+			session_id: "mm:uuid",
+			user_id: "user_id"
 		},
 		/**
 		 * @description 语言包, 用于全局的语言替换
@@ -1196,7 +1203,7 @@ if (typeof($) === "undefined") {
 	 * @param {String} dir 当前路径
 	 */
 	String.prototype.delFile = function(dir) {
-		unlink(this.fullname(dir), function(e){});
+		unlink(this.fullname(dir), function(e) {});
 	};
 
 	/**
@@ -1213,7 +1220,7 @@ if (typeof($) === "undefined") {
 	 * @param {String} dir 当前路径
 	 */
 	String.prototype.delDir = function(dir) {
-		rmdir(this.fullname(dir), function(e){});
+		rmdir(this.fullname(dir), function(e) {});
 	};
 
 	/**

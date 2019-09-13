@@ -1,7 +1,7 @@
 /**
  * @fileOverview sql语句帮助类函数
  * @author <a href="http://qww.elins.cn">邱文武</a>
- * @version 1.2.1
+ * @version 1.2
  */
 require('mm_expand');
 
@@ -534,58 +534,59 @@ class Sql {
 							// 如果数量大于0，则增加多条件
 							var sl = "(";
 							for (var i = 0; i < arr.length; i++) {
-								sl += " || `" + key + "`='" + arr[i] + "'";
+								sl += " || `" + key + "` = '" + arr[i] + "'";
 							}
 							sl = sl.replace(" || ", "") + ")";
 							sql += " && " + sl;
 						} else {
-							sql += " && `" + key + "`='" + paramDt[key] + "'";
+							sql += " && `" + key + "` = '" + paramDt[key] + "'";
 						}
 					}
 				} else {
 					// 直接拼接
 					for (var key in paramDt) {
-						sql += " && `" + key + "`='" + paramDt[key] + "'";
+						sql += " && `" + key + "` = '" + paramDt[key] + "'";
 					}
 				}
 			} else {
 				var l = this.config.separator;
 				if (l) {
 					for (var key in paramDt) {
-						var arr = paramDt[key].split(l);
+						var field = paramDt[key] + '';
+						var arr = field.split(l);
 						var tpl = sqlDt[key];
 						if (tpl) {
 							if (arr.length > 1) {
 								// 如果数量大于0，则增加多条件
 								var sl = "(";
 								for (var i = 0; i < arr.length; i++) {
-									sl += " || " + tpl.replace("{0}", arr[i]);
+									sl += " || " + tpl.replaceAll("{0}", arr[i]);
 								}
 								sl = sl.replace(" || ", "") + ")";
 								sql += " && " + sl;
 							} else {
-								sql += " && " + tpl.replace("{0}", paramDt[key]);
+								sql += " && " + tpl.replaceAll("{0}", field);
 							}
 						} else {
 							if (arr.length > 1) {
 								// 如果数量大于0，则增加多条件
 								var sl = "(";
 								for (var i = 0; i < arr.length; i++) {
-									sl += " || `" + key + "`='" + arr[i] + "'";
+									sl += " || `" + key + "` = '" + arr[i] + "'";
 								}
 								sl = sl.replace(" || ", "") + ")";
 								sql += " && " + sl;
 							} else {
-								sql += " && `" + key + "`='" + paramDt[key] + "'";
+								sql += " && `" + key + "` = '" + field + "'";
 							}
 						}
 					}
 				} else {
 					for (var key in paramDt) {
 						if (sqlDt[key]) {
-							sql += " && " + sqlDt[key].replace("{0}", paramDt[key]);
+							sql += " && " + sqlDt[key].replaceAll("{0}", paramDt[key]);
 						} else {
-							sql += " && `" + key + "`='" + paramDt[key] + "'";
+							sql += " && `" + key + "` = '" + paramDt[key] + "'";
 						}
 					}
 				}
@@ -603,14 +604,14 @@ class Sql {
 			var sql = "";
 			if (!sqlDt || sqlDt.length === 0) {
 				for (var key in paramDt) {
-					sql += " , " + val[key];
+					sql += " , `" + key + "` = '" + val[key];
 				}
 			} else {
 				for (var key in paramDt) {
 					if (sqlDt[key]) {
 						sql += " , " + sqlDt[key].replace("{0}", paramDt[key]).replace('+ -', '- ').replace('- -', '+ ');
 					} else {
-						sql += " , `" + key + "`='" + paramDt[key] + "'";
+						sql += " , `" + key + "` = '" + paramDt[key] + "'";
 					}
 				}
 			}
