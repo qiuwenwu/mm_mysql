@@ -16,7 +16,7 @@ const Mysql = require('./index.js').Mysql;
 // 		addArr.push(add);
 // 	}
 // 	var ret = await db.addList(addArr);
-// 	console.log("添加：" + $.toJson(ret), db.error);
+// 	console.log("添加：" + JSON.stringify(ret), db.error);
 // 	var setArr = [];
 // 	for (var i = 1; i <= addArr.length; i++) {
 // 		setArr.push({
@@ -30,7 +30,7 @@ const Mysql = require('./index.js').Mysql;
 // 		});
 // 	}
 // 	ret = await db.setList(setArr);
-// 	console.log("修改：" + $.toJson(ret), db.error);
+// 	console.log("修改：" + JSON.stringify(ret), db.error);
 
 // 	var delArr = [];
 // 	for (var i = 1; i <= addArr.length; i++) {
@@ -46,7 +46,7 @@ const Mysql = require('./index.js').Mysql;
 // 	ret = await db.delObj({
 // 		username: "username"
 // 	});
-// 	console.log("删除：" + $.toJson(ret), db.error);
+// 	console.log("删除：" + JSON.stringify(ret), db.error);
 // }
 
 // test();
