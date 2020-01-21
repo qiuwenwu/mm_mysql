@@ -50,7 +50,7 @@ DB.prototype.fields = async function(table, field_name) {
 		sql += " AND COLUMN_NAME='" + field_name + "'";
 	}
 	var list = await this.run(sql);
-	const len = list.length;
+	var len = list.length;
 	for (var i = 0; i < len; i++) {
 		list[i].pk = list[i].pk ? true : false;
 		list[i].notnull = list[i].notnull == 'NO' ? true : false;

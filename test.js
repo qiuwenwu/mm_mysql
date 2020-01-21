@@ -320,27 +320,57 @@ const Mysql = require('./index.js').Mysql;
 
 // 测试实体模型
 async function test_model() {
+	// 实例化一个mysql操作类
 	var sql = new Mysql();
+	// 设置 数据库连接配置
+	var config = {
+			"host": "localhost",
+			"port": 3306,
+			"user": "root",
+			"password": "asd123",
+			"database": "mm"
+		};
+	sql.setConfig(config);
+	// 开启数据库连接
 	sql.open();
+	// 实例化一个数据库操作类
 	db = sql.db();
-	db.table = "sys_user";
-	db.key = "user_id";
-	var obj = await db.getObj({ username: "admin" }, null, 'username,vip,user_id');
-	console.log(db.sql);
-	console.log(obj);
 	
+	// 选择要查询的表
+	db.table = "sys_user";
+	
+	// 设置主键(可以不用设置, 设置之后查询的数据可以赋值同步)
+	db.key = "user_id";
+	
+	// 通过对象查询数据, 第一个参数是对象(查询条件), 第二个是排序方式,第三个是查询的字段
+	var obj = await db.getObj({ username: "admin" }, null, 'username,vip,user_id');
+	
+	// 调试输出生成的sql语句
+	console.log(db.sql);
+	// 调试输出查询结果
+	console.log(obj);
+	// 修改数据库中该条数据的vip字段值, 注意到数据库管理器查看数据库的变化
 	obj.vip = 5;
+	// 修改数据库中该条数据的gm字段值
 	obj.gm = 5;
+	// 修改数据库中该条数据的phone字段值
 	obj.phone = 333;
+	// 输出一下, 查看查询结果对象的变化, 对照数据库变化, 值是否一致
 	console.log(obj);
 	// obj.gm += 6;
 	
+	// 查询列表
 	var list = await db.get({ username: "admin" });
+	// 判断查询结果是否有数据
 	if(list.length > 0)
 	{
+		// 取第一条数据
 		obj = list[0];
+		// 将数据对象转为实体模型, 实现和数据库同步
 		var o = db.model(obj);
+		// 修改该条数据的phone字段为15817188815
 		o.phone = '15817188815';
+		// 调试输出, 对比对象变化和数据库值是否一致
 		console.log(o);
 	}
 }
