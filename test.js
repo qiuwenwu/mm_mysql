@@ -337,7 +337,7 @@ async function test_model() {
 	db = sql.db();
 	
 	// 选择要查询的表
-	db.table = "sys_user";
+	db.table = "user_account";
 	
 	// 设置主键(可以不用设置, 设置之后查询的数据可以赋值同步)
 	db.key = "user_id";
