@@ -1,6 +1,6 @@
 {
   "name": "mm_mysql",
-  "version": "1.3.8",
+  "version": "1.3.9",
   "description": "这是超级美眉mysql帮助函数模块，用于便捷操作mysql，使用await方式，可以避免嵌套函数",
   "main": "index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/qiuwenwu/mm_mysql#readme",
   "dependencies": {
-    "mm_expand": "^1.3.6",
+    "mm_expand": "^1.3.7",
     "mysql": "^2.17.1"
   }
 }
