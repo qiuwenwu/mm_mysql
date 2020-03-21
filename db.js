@@ -10,9 +10,10 @@ class DB extends Sql {
 	 * @param {String} database 数据库名称
 	 * @param {Object} run 查询函数
 	 * @param {Object} exec 更改函数
+	 * @param {Object} conn MySQL连接库
 	 */
-	constructor(database, run, exec) {
-		super(run, exec);
+	constructor(database, run, exec, conn) {
+		super(run, exec, conn);
 
 		// 数据库名
 		this.database = database;
@@ -136,15 +137,22 @@ DB.prototype.setType = function(type, auto, field, not_null) {
  * @param {String} field 主键字段名
  * @param {String} type  类型名，常用类型 mediumint, int, varchar
  * @param {Boolean} auto 是否自增字段, 默认为自增字段
+ * @param {String} commit 注释
  * @return {Promise|Number} 创建成功返回1，失败返回0
  */
-DB.prototype.addTable = async function(table, field, type, auto) {
+DB.prototype.addTable = async function(table, field, type, auto, commit = '') {
 	if (!field) {
 		field = "id";
 	}
 	var sql = "CREATE TABLE IF NOT EXISTS `{0}` (`{1}` {2}, PRIMARY KEY (`{3}`));".replace('{0}', table).replace(
-		'{1}', field).replace('{2}', this.setType(type, auto)).replace('{3}', field);
-	return await this.exec(sql);
+		'{1}', field).replace('{2}', this.setType(type, auto)).replace('{3}', field)
+	var bl = await this.exec(sql);
+	if(bl)
+	{
+		var sql_sub = "ALTER TABLE `{0}` COMMENT='{1}';".replace('{0}', table).replace('{1}', commit);
+		this.exec(sql_sub);
+	}
+	return bl;
 };
 
 /**

@@ -60,7 +60,7 @@ class Mysql {
 			// 数据库
 			database: "mm",
 			// 是否支持多个sql语句同时操作
-			multipleStatements: true,
+			multipleStatements: false
 		};
 		
 		// 唯一标识符
@@ -177,7 +177,7 @@ class Mysql {
 		 * @description 获取数据库管理器
 		 */
 		this.db = function() {
-			return new DB($this.config.database, $this.run, $this.exec);
+			return new DB($this.config.database, $this.run, $this.exec, $this.conn);
 		};
 	}
 }

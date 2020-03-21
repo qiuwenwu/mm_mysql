@@ -14,8 +14,9 @@ class Sql {
 	 * @description 数据库管理器
 	 * @param {Function} run 查询函数
 	 * @param {Function} exec 更改函数
+	 * @param {Object} conn MySQL连接库
 	 */
-	constructor(run, exec) {
+	constructor(run, exec, conn) {
 		/**
 		 * 查询函数
 		 */
@@ -24,7 +25,24 @@ class Sql {
 		 * 更改函数 用于增删改
 		 */
 		this.exec = exec;
-
+		/**
+		 * 规避SQL注入函数
+		 * @param {Object} value 值
+		 * @return {String} 返回执行结果
+		 */
+		this.escape = function (value){
+			return conn.escape(value);
+		};
+		
+		/**
+		 * 规避排序、SQL注入函数
+		 * @param {String} key 键
+		 * @return {String} 返回执行结果
+		 */
+		this.escapeId = function (key){
+			return conn.escapeId(key);
+		};
+		
 		/**
 		 * sql语句
 		 */
@@ -164,7 +182,7 @@ Sql.prototype.toQuery = function(where, sort, view) {
 		sql += " WHERE " + where;
 	}
 	if (sort) {
-		sql += " ORDER BY " + sort;
+		sql += " ORDER BY " + sort.replace(/;/, '');
 	}
 	sql = sql.replace("{0}", this.table).replace("{1}", view);
 	if (this.size && this.page) {
@@ -236,8 +254,8 @@ Sql.prototype.addOrSetSql = async function(where, set) {
 		arr.map(function(o) {
 			var ar = o.split('=');
 			if (ar.length === 2) {
-				key += "," + ar[0];
-				value += "," + ar[1];
+				key += "," + this.escapeId(ar[0]);
+				value += "," + this.escape(ar[1]);
 			}
 		});
 		return await this.addSql(key.replace(',', ''), value.replace(',', ''));
@@ -291,7 +309,7 @@ Sql.prototype.getCountSql = async function(where, sort, view) {
 Sql.prototype.toWhere = function(obj) {
 	var where = "";
 	for (var k in obj) {
-		where += " and `" + k + "`='" + obj[k] + "'";
+		where += " and `" + k + "`=" + this.escape(obj[k]);
 	}
 	return where.replace(" and ", "");
 };
@@ -303,7 +321,7 @@ Sql.prototype.toWhere = function(obj) {
 Sql.prototype.toSet = function(obj) {
 	var set = "";
 	for (var k in obj) {
-		set += ",`" + k + "`='" + obj[k] + "'";
+		set += "," + this.escapeId(k) + "=" + this.escape(obj[k]);
 	}
 	return set.replace(",", "");
 };
@@ -317,8 +335,8 @@ Sql.prototype.toAddSql = function(item) {
 	var key = "";
 	var val = "";
 	for (var k in item) {
-		key += ",`" + k + "`";
-		val += ",'" + item[k] + "'";
+		key += "," + this.escapeId(k);
+		val += "," + this.escape(item[k]);
 	}
 	var sql = "INSERT INTO `{0}` ({1}) VALUES ({2});";
 	return sql.replace("{0}", this.table).replace("{1}", key.replace(",", "")).replace("{2}", val.replace(",", ""));
@@ -445,6 +463,7 @@ Sql.prototype.addList = function(list) {
 	for (var i = 0; i < len; i++) {
 		sql += this.toAddSql(list[i]);
 	}
+	sql += "\nEnd Transaction;"
 	return this.exec(sql);
 };
 /**
@@ -484,7 +503,8 @@ Sql.prototype.setList = function(list) {
 Sql.prototype.has_param = function(paramDt, sqlDt) {
 	var bl = false;
 	for (var key in sqlDt) {
-		if (paramDt[key] !== undefined && paramDt[key] !== null && paramDt[key] !== '') {
+		var value = paramDt[key];
+		if (value !== undefined && value !== null && value !== '') {
 			bl = true;
 			break;
 		}
@@ -533,7 +553,7 @@ Sql.prototype.filter_param = function(paramDt, sqlDt) {
  */
 Sql.prototype.tpl_query = function(paramDt, sqlDt) {
 	var sql = "";
-	if(sqlDt){
+	if (sqlDt) {
 		var l = this.config.separator;
 		if (l) {
 			for (var key in paramDt) {
@@ -546,12 +566,12 @@ Sql.prototype.tpl_query = function(paramDt, sqlDt) {
 						var sl = "(";
 						var len = arr.length;
 						for (var i = 0; i < len; i++) {
-							sl += " || " + tpl.replaceAll("{0}", arr[i]);
+							sl += " || " + tpl.replaceAll("{0}", this.escape(arr[i]).trim("'"));
 						}
 						sl = sl.replace(" || ", "") + ")";
 						sql += " && " + sl;
 					} else {
-						sql += " && " + tpl.replaceAll("{0}", value);
+						sql += " && " + tpl.replaceAll("{0}", this.escape(value).trim("'"));
 					}
 				} else {
 					if (arr.length > 1) {
@@ -559,49 +579,50 @@ Sql.prototype.tpl_query = function(paramDt, sqlDt) {
 						var sl = "(";
 						var len = arr.length;
 						for (var i = 0; i < len; i++) {
-							sl += " || `" + key + "` = '" + arr[i] + "'";
+							sl += " || " + this.escapeId(key) + " = " + this.escape(arr[i]);
 						}
 						sl = sl.replace(" || ", "") + ")";
 						sql += " && " + sl;
 					} else {
-						sql += " && `" + key + "` = '" + value + "'";
+						sql += " && " + this.escapeId(key) + " = " + this.escape(value);
 					}
 				}
 			}
 		} else {
 			for (var key in paramDt) {
+				var value = this.escape(paramDt[key]);
 				if (sqlDt[key]) {
-					sql += " && " + sqlDt[key].replaceAll("{0}", paramDt[key]);
+					sql += " && " + sqlDt[key].replaceAll("{0}", value.trim("'"));
 				} else {
-					sql += " && `" + key + "` = '" + paramDt[key] + "'";
+					sql += " && " + this.escapeId(key) + " = " + value;
 				}
 			}
 		}
-	}
-	else {
+	} else {
 		// 如果没有模板，则直接拼接参数
 		var l = this.config.separator;
 		if (l) {
 			// 使用分隔数组拼接
 			for (var key in paramDt) {
-				var arr = paramDt[key].split(l);
+				var value = paramDt[key];
+				var arr = value.split(l);
 				if (arr.length > 1) {
 					// 如果数量大于0，则增加多条件
 					var sl = "(";
 					var len = arr.length;
 					for (var i = 0; i < len; i++) {
-						sl += " || `" + key + "` = '" + arr[i] + "'";
+						sl += " || " + this.escapeId(key) + " = " + this.escape(arr[i]);
 					}
 					sl = sl.replace(" || ", "") + ")";
 					sql += " && " + sl;
 				} else {
-					sql += " && `" + key + "` = '" + paramDt[key] + "'";
+					sql += " && " + this.escapeId(key) + " = " + this.escape(value);
 				}
 			}
 		} else {
 			// 直接拼接
 			for (var key in paramDt) {
-				sql += " && `" + key + "` = '" + paramDt[key] + "'";
+				sql += " && " + this.escapeId(key) + " = " + this.escape(paramDt[key]);
 			}
 		}
 	}
@@ -618,14 +639,15 @@ Sql.prototype.tpl_body = function(paramDt, sqlDt) {
 	var sql = "";
 	if (!sqlDt || sqlDt.length === 0) {
 		for (var key in paramDt) {
-			sql += " , `" + key + "` = '" + val[key];
+			sql += " , " + this.escapeId(key) + " = " + this.escape(val[key]);
 		}
 	} else {
 		for (var key in paramDt) {
+			var value = this.escape(paramDt[key]);
 			if (sqlDt[key]) {
-				sql += " , " + sqlDt[key].replace("{0}", paramDt[key]).replace('+ -', '- ').replace('- -', '+ ');
+				sql += " , " + sqlDt[key].replace("{0}", value).replace('+ -', '- ').replace('- -', '+ ');
 			} else {
-				sql += " , `" + key + "` = '" + paramDt[key] + "'";
+				sql += " , " + this.escapeId(key) + " = " + value;
 			}
 		}
 	}
@@ -674,16 +696,17 @@ Sql.prototype.model = function(model) {
 Sql.prototype.getObj = async function(query, sort, view) {
 	this.page = 1;
 	this.size = 1;
-	if (this.key) {
-		if (view && view.indexOf(this.key) === -1 && view.indexOf('*') === -1) {
-			view += ",`" + this.key + "`";
+	var key = this.key;
+	if (key) {
+		if (view && view.indexOf(key) === -1 && view.indexOf('*') === -1) {
+			view += "," + this.escapeId(key);
 		}
 	}
 	var sql = this.toGetSql(query, sort, view);
 	var list = await this.run(sql);
 	if (list.length > 0) {
 		var obj = list[0];
-		if (this.key) {
+		if (key) {
 			return this.model(obj);
 		} else {
 			return obj;
