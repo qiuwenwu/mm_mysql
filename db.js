@@ -10,10 +10,9 @@ class DB extends Sql {
 	 * @param {String} database 数据库名称
 	 * @param {Object} run 查询函数
 	 * @param {Object} exec 更改函数
-	 * @param {Object} conn MySQL连接库
 	 */
-	constructor(database, run, exec, conn) {
-		super(run, exec, conn);
+	constructor(database, run, exec) {
+		super(run, exec);
 
 		// 数据库名
 		this.database = database;
@@ -147,8 +146,7 @@ DB.prototype.addTable = async function(table, field, type, auto, commit = '') {
 	var sql = "CREATE TABLE IF NOT EXISTS `{0}` (`{1}` {2}, PRIMARY KEY (`{3}`));".replace('{0}', table).replace(
 		'{1}', field).replace('{2}', this.setType(type, auto)).replace('{3}', field)
 	var bl = await this.exec(sql);
-	if(bl)
-	{
+	if (bl) {
 		var sql_sub = "ALTER TABLE `{0}` COMMENT='{1}';".replace('{0}', table).replace('{1}', commit);
 		this.exec(sql_sub);
 	}

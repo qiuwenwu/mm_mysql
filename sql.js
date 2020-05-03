@@ -4,6 +4,7 @@
  * @version 1.2
  */
 require('mm_expand');
+const {escape, escapeId} = require('mysql');
 
 /**
  * @class 数据库语法通用类
@@ -14,9 +15,8 @@ class Sql {
 	 * @description 数据库管理器
 	 * @param {Function} run 查询函数
 	 * @param {Function} exec 更改函数
-	 * @param {Object} conn MySQL连接库
 	 */
-	constructor(run, exec, conn) {
+	constructor(run, exec) {
 		/**
 		 * 查询函数
 		 */
@@ -30,19 +30,19 @@ class Sql {
 		 * @param {Object} value 值
 		 * @return {String} 返回执行结果
 		 */
-		this.escape = function (value){
-			return conn.escape(value);
+		this.escape = function(value) {
+			return escape(value);
 		};
-		
+
 		/**
 		 * 规避排序、SQL注入函数
 		 * @param {String} key 键
 		 * @return {String} 返回执行结果
 		 */
-		this.escapeId = function (key){
-			return conn.escapeId(key);
+		this.escapeId = function(key) {
+			return escapeId(key);
 		};
-		
+
 		/**
 		 * sql语句
 		 */
@@ -137,8 +137,8 @@ class Sql {
  * @description 清理存储的数据
  */
 Sql.prototype.clear = async function() {
-	this.run = run;
-	this.exec = exec;
+	// this.run = run;
+	// this.exec = exec;
 	this.sql = "";
 	this.error;
 	this.results = [];
@@ -251,13 +251,14 @@ Sql.prototype.addOrSetSql = async function(where, set) {
 		var arr = set.split(',');
 		var key = "";
 		var value = "";
-		arr.map(function(o) {
+		for (var i = 0; i < arr.length; i++) {
+			var o = arr[i];
 			var ar = o.split('=');
 			if (ar.length === 2) {
-				key += "," + this.escapeId(ar[0]);
-				value += "," + this.escape(ar[1]);
+				key += "," + ar[0];
+				value += "," + ar[1];
 			}
-		});
+		}
 		return await this.addSql(key.replace(',', ''), value.replace(',', ''));
 	}
 	return await this.setSql(where, set);

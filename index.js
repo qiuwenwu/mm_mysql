@@ -42,8 +42,6 @@ class Mysql {
 		 * sql语句
 		 */
 		this.sql = "";
-		// 执行结果
-		this.results = [];
 		// 连接器
 		this.conn;
 
@@ -133,13 +131,11 @@ class Mysql {
 									code: err.errno,
 									message: err.sqlMessage
 								};
-								_this.results = [];
 								resolve(-1);
 							} else {
 								_this.error = undefined;
 								if (o.constructor == Array) {
 									if (o.length > 0) {
-										_this.results = o;
 										var num = 0;
 										o.map(function(item) {
 											num += item['affectedRows'];
@@ -150,13 +146,9 @@ class Mysql {
 											resolve(num);
 										}
 									} else {
-										_this.results = [{
-											count: 1
-										}];
 										resolve(1);
 									}
 								} else {
-									_this.results = [o];
 									var num = o['affectedRows'];
 									if (num === 0) {
 										resolve(1);
@@ -177,7 +169,7 @@ class Mysql {
 		 * @description 获取数据库管理器
 		 */
 		this.db = function() {
-			return new DB($this.config.database, $this.run, $this.exec, $this.conn);
+			return new DB($this.config.database, $this.run, $this.exec);
 		};
 	}
 }
