@@ -137,8 +137,8 @@ class Sql {
  * @description 清理存储的数据
  */
 Sql.prototype.clear = async function() {
-	// this.run = run;
-	// this.exec = exec;
+	this.run = run;
+	this.exec = exec;
 	this.sql = "";
 	this.error;
 	this.results = [];
