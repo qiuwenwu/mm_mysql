@@ -456,15 +456,16 @@ Sql.prototype.getCount = async function(query, sort, view) {
 /**
  * @description 添加多条数据
  * @param {Array} list 对象数组
+ * @param {Boolean} lock 是否锁定
  * @return {Promise|Object} 执行结果
  */
-Sql.prototype.addList = function(list) {
-	var sql = "START TRANSACTION;\n";
+Sql.prototype.addList = function(list, lock = true) {
+	var sql = lock ? "BEGIN;\r\n" : "\r\n";
 	var len = list.length;
 	for (var i = 0; i < len; i++) {
-		sql += this.toAddSql(list[i]);
+		sql += this.toAddSql(list[i]) + "\r\n";
 	}
-	sql += "\nEnd Transaction;"
+	sql += lock ? "COMMIT;" : "";
 	return this.exec(sql);
 };
 /**

@@ -60,13 +60,14 @@ DB.prototype.fields = async function(table, field_name) {
 
 /**
  * @description 设置类型
- * @param {String} type 类型名，常用类型 mediumint, int, varchar, datetime
- * @param {Boolean} auto 自动
  * @param {String} field 字段名
+ * @param {String} type 类型名，常用类型 mediumint, int, varchar, datetime
+ * @param {String} value 默认值
  * @param {Boolean} not_null 是否非空字段 true为非空，false为可空
+ * @param {Boolean} auto 自动
  * @return {String} 返回最终类型
  */
-DB.prototype.setType = function(type, auto, field, not_null) {
+DB.prototype.setType = function(field, type, value, not_null, auto) {
 	if (!type) {
 		type = 'int';
 	}
@@ -78,19 +79,36 @@ DB.prototype.setType = function(type, auto, field, not_null) {
 			if (not_null) {
 				type += " NOT NULL";
 			}
+			if (value) {
+				type += " DEFAULT '" + value + "'";
+			} else {
+				type += " DEFAULT ''";
+			}
 			break;
 		case "number":
-			type = "int(11) UNSIGNED NOT NULL";
+			type = "int(11) NOT NULL";
 			if (auto) {
-				type += "AUTO_INCREMENT";
+				type += " AUTO_INCREMENT";
+			} else if (value) {
+				type += " DEFAULT " + value;
+			} else {
+				type += " DEFAULT 0";
 			}
 			break;
 		case "bool":
 		case "tinyint":
 			type = "tinyint(1) UNSIGNED NOT NULL";
+			if (value) {
+				type += " DEFAULT " + value;
+			} else {
+				type += " DEFAULT 0";
+			}
 			break;
 		case "datetime":
-			type += " DEFAULT '1970-01-01 00:00:00'";
+			if (!value) {
+				value = "1970-01-01 00:00:00";
+			}
+			type += " DEFAULT '" + value + "'";
 			break;
 		case "timestamp":
 			if (auto) {
@@ -100,29 +118,66 @@ DB.prototype.setType = function(type, auto, field, not_null) {
 					type += " DEFAULT CURRENT_TIMESTAMP";
 				}
 			} else {
-				type += " DEFAULT 0";
+				type += " DEFAULT CURRENT_TIMESTAMP";
 			}
 			break;
 		case "date":
-			type += " NOT NULL DEFAULT '1970-01-01'";
+			if (!value) {
+				value = "1970-01-01";
+			}
+			type += " NOT NULL DEFAULT '" + value + "'";
 			break;
 		case "time":
-			type += " NOT NULL DEFAULT '00:00:00'";
+			if (!value) {
+				value = "00:00:00";
+			}
+			type += " NOT NULL DEFAULT '" + value + "'";
+			break;
+		case "double":
+			if (type == "double") {
+				type = "double(10, 2)"
+			}
+			type += " NOT NULL";
+			if (value) {
+				type += " DEFAULT '" + value + "'";
+			} else {
+				type += " DEFAULT 0";
+			}
+			break;
+		case "float":
+			if (type == "float") {
+				type = "float(17, 8)"
+			}
+			type += " NOT NULL";
+			if (value) {
+				type += " DEFAULT '" + value + "'";
+			} else {
+				type += " DEFAULT 0";
+			}
 			break;
 		case "text":
 			break;
 		default:
 			if (type.indexOf('var') !== -1) {
 				if (not_null) {
-					type += " NOT NULL";
+					type += " NOT NULL"
+				}
+				if (value) {
+					type += " DEFAULT '" + value + "'";
+				} else {
+					type += " DEFAULT ''";
 				}
 			} else {
-				if (type.indexOf('int') !== -1) {
-					type += " UNSIGNED";
-				}
-				type += " NOT NULL";
+				type += " UNSIGNED NOT NULL";
 				if (auto) {
 					type += " AUTO_INCREMENT";
+				}
+				else {
+					if (value) {
+						type += " DEFAULT '" + value + "'";
+					} else {
+						type += " DEFAULT 0";
+					}
 				}
 			}
 			break;
@@ -143,13 +198,26 @@ DB.prototype.addTable = async function(table, field, type, auto, commit = '') {
 	if (!field) {
 		field = "id";
 	}
-	var sql = "CREATE TABLE IF NOT EXISTS `{0}` (`{1}` {2}, PRIMARY KEY (`{3}`));".replace('{0}', table).replace(
-		'{1}', field).replace('{2}', this.setType(type, auto)).replace('{3}', field)
-	var bl = await this.exec(sql);
-	if (bl) {
-		var sql_sub = "ALTER TABLE `{0}` COMMENT='{1}';".replace('{0}', table).replace('{1}', commit);
-		this.exec(sql_sub);
+	var sql = "CREATE TABLE IF NOT EXISTS `{0}` (`{1}` {2})".replace('{0}', table).replace(
+		'{1}', field).replace('{2}', this.setType(field, type, null, true, auto) + ' PRIMARY KEY');
+	if(commit){
+		sql += " COMMENT = '" + commit + "';"
 	}
+	else {
+		sql += ";"
+	}
+	var bl = await this.exec(sql);
+	return bl;
+};
+
+/**
+ * @description 清空数据表
+ * @param {Boolean} reset 是否重置自增ID
+ * @return {Promise|Number} 清空成功返回1，失败返回0
+ */
+DB.prototype.clearTable = async function(reset = true, table = '') {
+	var sql = reset ? "TRUNCATE table `{0}`;" : "DELETE FROM `{0}`";
+	var bl = await this.exec(sql.replace('{0}', table || this.table));
 	return bl;
 };
 
@@ -170,24 +238,14 @@ DB.prototype.field_add = async function(field, type, value, not_null, auto, isKe
 	var arr = await this.run(sql);
 	if (arr && arr.length > 0) {
 		if (arr[0].count == 0) {
-			var type = this.setType(type, auto, field, not_null);
-			if (value !== undefined) {
-				if (type.indexOf('CURRENT_') === -1) {
-					if (typeof(value) == 'string' && !value.startWith('CURRENT_')) {
-						type += " DEFAULT '" + value + "'";
-					} else if (!auto) {
-						type += " DEFAULT " + value;
-					}
-				}
-			} else if (type.has('text')) {
-				type = type.replace('NOT NULL', '');
-			} else if (type.indexOf('DEFAULT') === -1 && type.indexOf('AUTO') === -1) {
-				type += " DEFAULT 0";
-			}
+			var type = this.setType(field, type, value, not_null, auto);
 			var sql = "ALTER Table `{0}` ADD `{1}` {2}";
 			sql = sql.replace('{0}', this.table).replace('{1}', field).replace('{2}', type);
 			if (isKey) {
-				sql += " PRIMARY KEY";
+				sql += " , ADD PRIMARY KEY (`" + field + "`)";
+			}
+			else {
+				sql += ";";
 			}
 			return await this.exec(sql);
 		}
@@ -200,12 +258,13 @@ DB.prototype.field_add = async function(field, type, value, not_null, auto, isKe
  * @param {String} field 字段名
  * @param {String} type 类型名，常用类型 mediumint, int, float, double, varchar, tinyint, text, date, datetime, time, timestamp
  * @param {String|Number} value 默认值
+ * @param {Boolean} not_null 是否非空字段 true为非空，false为可空
  * @param {Boolean} auto 是否自动（如果为数字类型则自增增段，如果为时间类型则默认事件）
  * @param {Boolean} isKey 是否主键
  * @param {String} new_name 新名称
  * @return {Promise|Number} 添加成功返回1，失败返回0
  */
-DB.prototype.field_set = async function(field, type, value, auto, isKey, new_name) {
+DB.prototype.field_set = async function(field, type, value, not_null, auto, isKey, new_name) {
 	var sql =
 		"SELECT COUNT(*) as `count` FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='{0}' AND table_name='{1}' AND COLUMN_NAME='{2}'";
 	sql = sql.replace('{0}', this.database).replace('{1}', this.table).replace('{2}', field);
@@ -216,29 +275,22 @@ DB.prototype.field_set = async function(field, type, value, auto, isKey, new_nam
 		}
 	}
 
-	var type = this.setType(type, auto, field);
-	if (value !== undefined) {
-		if (type.indexOf('CURRENT_') === -1) {
-			if (typeof(value) == 'string' && !value.startWith('CURRENT_')) {
-				type += " DEFAULT '" + value + "'";
-			} else if (!auto) {
-				type += " DEFAULT " + value;
-			}
-		}
-	} else if (type.has('varchar') || type.has('text')) {
+	var type = this.setType(field, type, value, not_null, auto);
+	if (type.has('text')) {
 		type = type.replace('NOT NULL', '');
-	} else if (type.indexOf('DEFAULT') === -1 && type.indexOf('AUTO') === -1) {
-		type += " DEFAULT 0";
 	}
 
 	if (!new_name) {
 		new_name = field;
 	}
 
-	sql = "alter table `{0}` change `{1}` `{2}` {3}";
+	sql = "ALTER TABLE `{0}` CHANGE COLUMN `{1}` `{2}` {3}";
 	sql = sql.replace('{0}', this.table).replace('{1}', field).replace('{2}', new_name).replaceAll('{3}', type);
-	if (isKey) {
-		sql += " PRIMARY KEY";
+	if(isKey){
+		sql += ", DROP PRIMARY KEY, ADD PRIMARY KEY (" + new_name + ") USING BTREE;"
+	}
+	else {
+		sql += ";";
 	}
 	return await this.exec(sql);
 };
