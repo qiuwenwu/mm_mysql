@@ -48,7 +48,7 @@ class Mysql {
 		// 数据库配置参数
 		this.config = {
 			// 服务器地址
-			host: "localhost",
+			host: "127.0.0.1",
 			// 端口号
 			port: 3306,
 			// 连接用户名

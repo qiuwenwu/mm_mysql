@@ -1,5 +1,11 @@
 const Mysql = require('./index.js').Mysql;
 
+var sql = new Mysql();
+sql.setConfig({
+	multipleStatements: true
+});
+sql.open();
+
 var tpl = {
 	"query": {
 		"state_min": "`state` >= '{0}'",
@@ -55,7 +61,7 @@ var tpl = {
 // 	}
 // 	var query_str = db.tpl_query(query, tpl.query);
 // 	var set_str = db.tpl_body(body, tpl.update);
-	
+
 // 	ret = await db.setSql(query_str, set_str);
 // 	console.log('修改结果', ret);
 // 	console.log('SQL语句', db.sql);
@@ -148,7 +154,7 @@ var tpl = {
 // 	if (num < 0) {
 // 		console.log("SQL：" + db.sql);
 // 	}
-	
+
 // 	num = await db.field_add("last_time", 'timestamp');
 // 	console.log("last_time结果：" + num);
 // 	if (num < 0) {
@@ -178,7 +184,7 @@ var tpl = {
 // 	if (num < 0) {
 // 		console.log("SQL：" + db.sql);
 // 	}
-	
+
 // 	num = await db.field_add("like", 'string', '篮球 足球 乒乓球');
 // 	console.log("like结果：" + num);
 // 	if (num < 0) {
@@ -188,57 +194,63 @@ var tpl = {
 
 // addField();
 
-async function test() {
-	var sql = new Mysql();
-	sql.setConfig({
-		multipleStatements: true
-	});
-	sql.open();
-	db = sql.db();
-	db.table = "test";
-	await db.clearTable(false);
-	var addArr = [];
-	for (var i = 1; i <= 9; i++) {
-		var add = {
-			name: "test" + i,
-			username: "t" + i,
-			password: "a" + i
-		};
-		addArr.push(add);
-	}
-	var ret = await db.addList(addArr);
-	console.log("添加：" + JSON.stringify(ret), db.error);
-	// var setArr = [];
-	// for (var i = 1; i <= addArr.length; i++) {
-	// 	setArr.push({
-	// 		query: {
-	// 			name: "test" + i
-	// 		},
-	// 		item: {
-	// 			username: "username" + i,
-	// 			password: "password" + i
-	// 		}
-	// 	});
-	// }
-	// ret = await db.setList(setArr);
-	// console.log("修改：" + JSON.stringify(ret), db.error);
 
-	// var delArr = [];
-	// for (var i = 1; i <= addArr.length; i++) {
-	// 	if (i % 2 == 0) {
-	// 		delArr.push({
-	// 			query: {
-	// 				username: "username" + i
-	// 			}
-	// 		});
-	// 	}
-	// }
-	// // ret = await db.delList(delArr);
-	// ret = await db.del({
-	// 	username: "username"
-	// });
-	// console.log("删除：" + JSON.stringify(ret), db.error);
+async function test() {
+	db = sql.db();
+	db.table = "user_account"
+	var ret = await db.get({ username: 'admin' }, null, null, false);
+	console.log(ret);
+	console.log(db.error);
 }
+
+
+// async function test() {
+
+// 	db = sql.db();
+// 	db.table = "test";
+// 	await db.clearTable(false);
+// 	var addArr = [];
+// 	for (var i = 1; i <= 9; i++) {
+// 		var add = {
+// 			name: "test" + i,
+// 			username: "t" + i,
+// 			password: "a" + i
+// 		};
+// 		addArr.push(add);
+// 	}
+// 	var ret = await db.addList(addArr);
+// 	console.log("添加：" + JSON.stringify(ret), db.error);
+// 	// var setArr = [];
+// 	// for (var i = 1; i <= addArr.length; i++) {
+// 	// 	setArr.push({
+// 	// 		query: {
+// 	// 			name: "test" + i
+// 	// 		},
+// 	// 		item: {
+// 	// 			username: "username" + i,
+// 	// 			password: "password" + i
+// 	// 		}
+// 	// 	});
+// 	// }
+// 	// ret = await db.setList(setArr);
+// 	// console.log("修改：" + JSON.stringify(ret), db.error);
+
+// 	// var delArr = [];
+// 	// for (var i = 1; i <= addArr.length; i++) {
+// 	// 	if (i % 2 == 0) {
+// 	// 		delArr.push({
+// 	// 			query: {
+// 	// 				username: "username" + i
+// 	// 			}
+// 	// 		});
+// 	// 	}
+// 	// }
+// 	// // ret = await db.delList(delArr);
+// 	// ret = await db.del({
+// 	// 	username: "username"
+// 	// });
+// 	// console.log("删除：" + JSON.stringify(ret), db.error);
+// }
 
 test();
 

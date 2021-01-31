@@ -4,7 +4,10 @@
  * @version 1.2
  */
 require('mm_expand');
-const {escape, escapeId} = require('mysql');
+const {
+	escape,
+	escapeId
+} = require('mysql');
 
 /**
  * @class 数据库语法通用类
@@ -281,6 +284,7 @@ Sql.prototype.countSql = async function(where) {
 	}
 	return n;
 };
+
 /**
  * @description 查询数据并返回符合条件总数
  * @param {String} where 查询条件
@@ -301,19 +305,32 @@ Sql.prototype.getCountSql = async function(where, sort, view) {
 	return ret;
 };
 /* ===  sql语句拼接函数  === */
-/// 
 /**
  * @description 转为where语句
  * @param {Object} obj 用作拼接的对象
+ * @param {Boolean} like 是否使用like匹配, 默认不使用
  * @return {String} where格式sql语句字符串
  */
-Sql.prototype.toWhere = function(obj) {
+Sql.prototype.toWhere = function(obj, like) {
 	var where = "";
-	for (var k in obj) {
-		where += " and `" + k + "`=" + this.escape(obj[k]);
+	if(like){
+		for (var k in obj) {
+			var val = obj[k];
+			if (typeof(val) === "string") {
+				where += " and `" + k + "` LIKE '%" + this.escape(val).trim("'") + "%'"
+			} else {
+				where += " and `" + k + "`=" + val
+			}
+		}
+	}
+	else {
+		for (var k in obj) {
+			where += " and " + this.escapeId(k) + "=" + this.escape(obj[k]);
+		}
 	}
 	return where.replace(" and ", "");
 };
+
 /**
  * @description 转为set语句
  * @param {Object} obj 用作拼接的对象
@@ -372,10 +389,11 @@ Sql.prototype.toSetSql = function(query, item) {
  * @param {Object} query 查询键值集合
  * @param {String} sort 排序规则
  * @param {String} view 显示的字段
+ * @param {Boolean} like 是否使用like匹配, 默认使用
  * @return {String} sql语句
  */
-Sql.prototype.toGetSql = function(query, sort, view) {
-	var where = this.toWhere(query);
+Sql.prototype.toGetSql = function(query, sort, view, like = true) {
+	var where = this.toWhere(query, like);
 	var sql = this.toQuery(where, sort, view);
 	return sql;
 };
@@ -415,10 +433,11 @@ Sql.prototype.set = function(query, item) {
  * @param {Object} query 查询条件
  * @param {String} sort 排序
  * @param {String} view 返回的字段
+ * @param {Boolean} like 是否使用like匹配, 默认使用
  * @return {Promise|Array} 查询结果
  */
-Sql.prototype.get = function(query, sort, view) {
-	var sql = this.toGetSql(query, sort, view);
+Sql.prototype.get = function(query, sort, view, like = true) {
+	var sql = this.toGetSql(query, sort, view, like);
 	return this.run(sql);
 };
 
@@ -426,19 +445,21 @@ Sql.prototype.get = function(query, sort, view) {
  * @description 添加或修改
  * @param {Object} where 查询条件集合
  * @param {Object} set 修改的键值
+ * @param {Boolean} like 是否使用like匹配, 默认不使用
  * @return {Promise|Object} 执行结果
  */
-Sql.prototype.addOrSet = async function(where, set) {
-	return await this.addOrSetSql(this.toWhere(where), this.toSet(set));
+Sql.prototype.addOrSet = async function(where, set, like) {
+	return await this.addOrSetSql(this.toWhere(where, like), this.toSet(set));
 };
 
 /**
  * @description 查询符合结果总数
  * @param {Object} query 查询条件集合
+ * @param {Boolean} like 是否使用like匹配, 默认使用
  * @return {Promise|Number} 查询结果
  */
-Sql.prototype.count = function(query) {
-	return this.countSql(this.toWhere(query));
+Sql.prototype.count = function(query, like = true) {
+	return this.countSql(this.toWhere(query, like));
 };
 
 /**
@@ -446,10 +467,11 @@ Sql.prototype.count = function(query) {
  * @param {Object} query 查询条件
  * @param {String} sort 排序
  * @param {String} view 返回的字段
+ * @param {Boolean} like 是否使用like匹配, 默认使用
  * @return {Promise|Object} 查询到的内容列表和符合条件总数
  */
-Sql.prototype.getCount = async function(query, sort, view) {
-	return this.getCountSql(this.toWhere(query), sort, view);
+Sql.prototype.getCount = async function(query, sort, view, like = true) {
+	return this.getCountSql(this.toWhere(query, like), sort, view);
 };
 
 /* ===  传入数组操作  === */
@@ -693,9 +715,10 @@ Sql.prototype.model = function(model) {
  * @param {Object} query 查询条件
  * @param {String} sort 排序
  * @param {String} view 返回的字段
+ * @param {Boolean} like 是否like匹配
  * @return {Promise|Array} 查询结果
  */
-Sql.prototype.getObj = async function(query, sort, view) {
+Sql.prototype.getObj = async function(query, sort, view, like = false) {
 	this.page = 1;
 	this.size = 1;
 	var key = this.key;
@@ -704,7 +727,7 @@ Sql.prototype.getObj = async function(query, sort, view) {
 			view += "," + this.escapeId(key);
 		}
 	}
-	var sql = this.toGetSql(query, sort, view);
+	var sql = this.toGetSql(query, sort, view, like);
 	var list = await this.run(sql);
 	if (list.length > 0) {
 		var obj = list[0];
