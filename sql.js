@@ -87,6 +87,11 @@ class Sql {
 		this.orderby = "";
 
 		/**
+		 * 查询分组
+		 */
+		this.groupby = "";
+
+		/**
 		 * 是否统计查询结果数
 		 */
 		this.count_ret = "false";
@@ -304,6 +309,67 @@ Sql.prototype.getCountSql = async function(where, sort, view) {
 	};
 	return ret;
 };
+
+/**
+ * @description 统计学
+ * @param {String} where 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @param {String} sort 排序方式
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupMath = async function(where, groupby, view, sort, method) {
+	var where = this.toWhere(where);
+	if (!view) {
+		view = "*"
+	}
+	var viewStr = "";
+	if(view.indexOf(",") !== -1){
+		var arr = view.split(",");
+		for(var i = 0; i < arr.length; i++){
+			var str = this.escapeId(arr[i]);
+			viewStr += "," + method.toUpperCase() + "(" + str + ") " + method.toLowerCase() + "_" + str.replace(/`/g, "")
+		}
+	}
+	else {
+		viewStr = "," + method.toUpperCase() + "(" + this.escapeId(view) + ") " + method.toLowerCase() + "_" + view.replace(/`/g, "")
+	}
+	var sql = "SELECT " + (groupby ? this.escapeId(groupby) : "") + viewStr + " FROM `" + this.table;
+	if (where) {
+		sql += ' WHERE ' + where;
+	}
+	if(groupby){
+		sql += "` GROUP BY " + this.escapeId(groupby);
+	}
+	if (sort) {
+		sql += " ORDER BY " + sort;
+	}
+	return await this.run(sql);
+};
+
+/**
+ * @description 分组合计数值
+ * @param {String} where 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @param {String} sort 排序方式
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupSum = async function(where, groupby, view, sort) {
+	return await this.groupMath(where, groupby, view, sort, "SUM");
+};
+
+/**
+ * @description 分组合计不同条数
+ * @param {String} where 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupCount = async function(where, groupby, view, sort) {
+	return await this.groupMath(where, groupby, view, sort, "COUNT");
+};
+
 /* ===  sql语句拼接函数  === */
 /**
  * @description 转为where语句
@@ -313,7 +379,7 @@ Sql.prototype.getCountSql = async function(where, sort, view) {
  */
 Sql.prototype.toWhere = function(obj, like) {
 	var where = "";
-	if(like){
+	if (like) {
 		for (var k in obj) {
 			var val = obj[k];
 			if (typeof(val) === "string") {
@@ -322,8 +388,7 @@ Sql.prototype.toWhere = function(obj, like) {
 				where += " and `" + k + "`=" + val
 			}
 		}
-	}
-	else {
+	} else {
 		for (var k in obj) {
 			where += " and " + this.escapeId(k) + "=" + this.escape(obj[k]);
 		}

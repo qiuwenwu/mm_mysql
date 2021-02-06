@@ -195,14 +195,46 @@ var tpl = {
 // addField();
 
 
+// async function test() {
+// 	db = sql.db();
+// 	db.table = "user_account"
+// 	var ret = await db.get({ username: 'admin' }, null, null, false);
+// 	console.log(ret);
+// 	console.log(db.error);
+// }
+
+
+// 分组统计
+// async function test() {
+// 	var db = sql.db();
+// 	db.table = "user_account"
+// 	var ret = await db.groupSum({}, "admin_id", "vip,gm", "sum_vip desc");
+// 	console.log(ret);
+// 	console.log(db.sql);
+// 	console.log(db.error);
+
+// 	ret = await db.groupCount({}, "admin_id", "vip,gm", "count_vip asc");
+// 	console.log(ret);
+// 	console.log(db.sql);
+// 	console.log(db.error);
+
+// 	// 通用式 最后一个参数传 count、sum、avg、min
+// 	ret = await db.groupMath({}, "nickname", "vip", "min_vip asc", "min");
+// 	console.log(ret);
+// 	console.log(db.sql);
+// 	console.log(db.error);
+// }
+
+
+// 算法排序
 async function test() {
-	db = sql.db();
+	var db = sql.db();
 	db.table = "user_account"
-	var ret = await db.get({ username: 'admin' }, null, null, false);
+	var ret = await db.get({}, "score desc", "username,vip+gm*3 score");
 	console.log(ret);
+	console.log(db.sql);
 	console.log(db.error);
 }
-
 
 // async function test() {
 
