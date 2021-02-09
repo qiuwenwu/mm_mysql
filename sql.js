@@ -382,7 +382,7 @@ Sql.prototype.toWhere = function(obj, like) {
 	if (like) {
 		for (var k in obj) {
 			var val = obj[k];
-			if (typeof(val) === "string") {
+			if (typeof(val) === "string" && !/^[0-9]+$/.test(val)) {
 				where += " and `" + k + "` LIKE '%" + this.escape(val).trim("'") + "%'"
 			} else {
 				where += " and `" + k + "`=" + val

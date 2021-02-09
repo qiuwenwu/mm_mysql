@@ -235,7 +235,6 @@ async function test() {
 	console.log(db.sql);
 	console.log(db.error);
 }
-
 // async function test() {
 
 // 	db = sql.db();
