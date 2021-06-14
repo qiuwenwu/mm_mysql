@@ -334,12 +334,12 @@ Sql.prototype.groupMath = async function(where, groupby, view, sort, method) {
 	else {
 		viewStr = "," + method.toUpperCase() + "(" + this.escapeId(view) + ") " + method.toLowerCase() + "_" + view.replace(/`/g, "")
 	}
-	var sql = "SELECT " + (groupby ? this.escapeId(groupby) : "") + viewStr + " FROM `" + this.table;
+	var sql = "SELECT " + (groupby ? this.escapeId(groupby) : "") + viewStr + " FROM `" + this.table + "`";
 	if (where) {
 		sql += ' WHERE ' + where;
 	}
 	if(groupby){
-		sql += "` GROUP BY " + this.escapeId(groupby);
+		sql += " GROUP BY " + this.escapeId(groupby);
 	}
 	if (sort) {
 		sql += " ORDER BY " + sort;
