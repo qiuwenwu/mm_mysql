@@ -344,7 +344,23 @@ Sql.prototype.groupMath = async function(where, groupby, view, sort, method) {
 	if (sort) {
 		sql += " ORDER BY " + sort;
 	}
+	if (this.size && this.page) {
+		var start = this.size * (this.page - 1);
+		sql += " limit " + start + ',' + this.size;
+	}
 	return await this.run(sql);
+};
+
+/**
+ * @description 分组求平均值
+ * @param {String} where 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @param {String} sort 排序方式
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupAvg = async function(where, groupby, view, sort) {
+	return await this.groupMath(where, groupby, view, sort, "AVG");
 };
 
 /**

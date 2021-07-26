@@ -229,8 +229,17 @@ var tpl = {
 // 算法排序
 async function test() {
 	var db = sql.db();
-	db.table = "user_account"
-	var ret = await db.get({}, "score desc", "username,vip+gm*3 score");
+	// db.table = "user_account"
+	// var ret = await db.get({}, "score desc", "username,vip+gm*3 score");
+	
+	
+	db.table = "service_order";
+	db.page = 1;
+	db.size = 10;
+	var ret = await db.groupAvg({
+		state: 6
+	}, "user_id", "score");
+	
 	console.log(ret);
 	console.log(db.sql);
 	console.log(db.error);
