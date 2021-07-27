@@ -232,12 +232,14 @@ async function test() {
 	// db.table = "user_account"
 	// var ret = await db.get({}, "score desc", "username,vip+gm*3 score");
 	
-	
 	db.table = "service_order";
 	db.page = 1;
 	db.size = 10;
+	db.like = false;
 	var ret = await db.groupAvg({
-		state: 6
+		state: 6,
+		time_create_min: "2021-07-26 00:00:00",
+		time_create_max: "2021-07-27 00:00:00",
 	}, "user_id", "score");
 	
 	console.log(ret);

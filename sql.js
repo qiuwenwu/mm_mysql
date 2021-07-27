@@ -319,26 +319,27 @@ Sql.prototype.getCountSql = async function(where, sort, view) {
  * @return {Promise|Object} 查询到的内容列表和符合条件总数
  */
 Sql.prototype.groupMath = async function(where, groupby, view, sort, method) {
-	var where = this.toWhere(where);
+	var where = this.toWhere(where, false);
 	if (!view) {
 		view = "*"
 	}
 	var viewStr = "";
-	if(view.indexOf(",") !== -1){
+	if (view.indexOf(",") !== -1) {
 		var arr = view.split(",");
-		for(var i = 0; i < arr.length; i++){
+		for (var i = 0; i < arr.length; i++) {
 			var str = this.escapeId(arr[i]);
-			viewStr += "," + method.toUpperCase() + "(" + str + ") " + method.toLowerCase() + "_" + str.replace(/`/g, "")
+			viewStr += "," + method.toUpperCase() + "(" + str + ") " + method.toLowerCase() + "_" + str.replace(
+				/`/g, "")
 		}
-	}
-	else {
-		viewStr = "," + method.toUpperCase() + "(" + this.escapeId(view) + ") " + method.toLowerCase() + "_" + view.replace(/`/g, "")
+	} else {
+		viewStr = "," + method.toUpperCase() + "(" + this.escapeId(view) + ") " + method.toLowerCase() + "_" +
+			view.replace(/`/g, "")
 	}
 	var sql = "SELECT " + (groupby ? this.escapeId(groupby) : "") + viewStr + " FROM `" + this.table + "`";
 	if (where) {
 		sql += ' WHERE ' + where;
 	}
-	if(groupby){
+	if (groupby) {
 		sql += " GROUP BY " + this.escapeId(groupby);
 	}
 	if (sort) {
@@ -398,15 +399,27 @@ Sql.prototype.toWhere = function(obj, like) {
 	if (like) {
 		for (var k in obj) {
 			var val = obj[k];
-			if (typeof(val) === "string" && !/^[0-9]+$/.test(val)) {
-				where += " and `" + k + "` LIKE '%" + this.escape(val).trim("'") + "%'"
+			if (k.endWith('_min')) {
+				where += " and " + this.escapeId(k.replace('_min', '')) + ">=" + this.escape(val);
+			} else if (k.endWith('_max')) {
+				where += " and " + this.escapeId(k.replace('_max', '')) + "<=" + this.escape(val);
+			} else if (typeof(val) === "string" && !/^[0-9]+$/.test(val)) {
+				where += " and " + this.escapeId(k) + " LIKE '%" + this.escape(val).trim("'") + "%'"
 			} else {
-				where += " and `" + k + "`=" + val
+				where += " and " + this.escapeId(k) + "=" + val
 			}
 		}
 	} else {
 		for (var k in obj) {
-			where += " and " + this.escapeId(k) + "=" + this.escape(obj[k]);
+			var val = obj[k];
+			if (k.endWith('_min')) {
+				where += " and " + this.escapeId(k.replace('_min', '')) + ">=" + this.escape(val.replace('_min',
+					''));
+			} else if (k.endWith('_max')) {
+				where += " and " + this.escapeId(k.replace('_max', '')) + "<=" + this.escape(val);
+			} else {
+				where += " and " + this.escapeId(k) + "=" + this.escape(val);
+			}
 		}
 	}
 	return where.replace(" and ", "");
@@ -772,11 +785,14 @@ Sql.prototype.model = function(model) {
 				var n = obj[prop];
 				var cha = value - n;
 				if (cha > 0) {
-					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=`" + prop + "` + " + cha);
+					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=`" +
+						prop + "` + " + cha);
 				} else if (cha < 0) {
-					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=`" + prop + "` - " + (-cha));
+					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=`" +
+						prop + "` - " + (-cha));
 				} else {
-					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=" + value);
+					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=" +
+						value);
 				}
 			} else {
 				var query = {};
