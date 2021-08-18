@@ -229,23 +229,44 @@ var tpl = {
 // 算法排序
 async function test() {
 	var db = sql.db();
-	// db.table = "user_account"
-	// var ret = await db.get({}, "score desc", "username,vip+gm*3 score");
+	// 取回上级对象，实际运用时看情况
+	var sql2 = db.parent();
+	// 取用户相关模型
+	var dbs = await sql2.dbs("user_id", 1, true, "user_account", "user_info", "service_member");
 	
-	db.table = "service_order";
-	db.page = 1;
-	db.size = 10;
-	db.like = false;
-	var ret = await db.groupAvg({
-		state: 6,
-		time_create_min: "2021-07-26 00:00:00",
-		time_create_max: "2021-07-27 00:00:00",
-	}, "user_id", "score");
+	var user = dbs.model;
+	console.log(user);
 	
-	console.log(ret);
-	console.log(db.sql);
-	console.log(db.error);
+	user.member.name = "美白";
+	// 合并属性
+	var u = dbs.merge();
+	console.log(u);
+	u.age = 18;
+	u.name = "芬芬";
+	
+	// console.log(user);
 }
+
+// // 算法排序
+// async function test() {
+// 	var db = sql.db();
+// 	// db.table = "user_account"
+// 	// var ret = await db.get({}, "score desc", "username,vip+gm*3 score");
+	
+// 	db.table = "service_order";
+// 	db.page = 1;
+// 	db.size = 10;
+// 	db.like = false;
+// 	var ret = await db.groupAvg({
+// 		state: 6,
+// 		time_create_min: "2021-07-26 00:00:00",
+// 		time_create_max: "2021-07-27 00:00:00",
+// 	}, "user_id", "score");
+	
+// 	console.log(ret);
+// 	console.log(db.sql);
+// 	console.log(db.error);
+// }
 // async function test() {
 
 // 	db = sql.db();

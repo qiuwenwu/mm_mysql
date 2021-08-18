@@ -11,6 +11,8 @@ const {
 	DB
 } = require('./db');
 
+const Link_model = require('./link_model');
+
 var pool = {};
 
 /**
@@ -60,13 +62,13 @@ class Mysql {
 			// 是否支持多个sql语句同时操作
 			multipleStatements: false
 		};
-		
+
 		// 唯一标识符
 		this.identifier = this.config.host + "/" + this.config.database;
-		
+
 		// 定义当前类, 用于数据库实例化访问
 		var $this = this;
-				
+
 		/**
 		 * @description 查询sql
 		 * @param {String} sql 查询参
@@ -104,7 +106,7 @@ class Mysql {
 				});
 			});
 		};
-		
+
 		/**
 		 * @description 增删改sql
 		 * @param {String} sql 查询参
@@ -114,7 +116,7 @@ class Mysql {
 		this.exec = function(sql, val) {
 			var _this = this;
 			this.sql = sql;
-		
+
 			// 返回一个 Promise
 			return new Promise((resolve, reject) => {
 				$this.conn.getConnection(function(err, db) {
@@ -164,15 +166,42 @@ class Mysql {
 				});
 			});
 		};
-	
+
+		var _this = this;
+
 		/**
 		 * @description 获取数据库管理器
 		 */
 		this.db = function() {
-			return new DB($this.config.database, $this.run, $this.exec);
+			var db = new DB($this.config.database, $this.run, $this.exec);
+			db.parent = function() {
+				return _this;
+			}
+			return db;
 		};
 	}
 }
+
+/**
+ * 获取数据库管理器
+ * @param {String} key 主键
+ * @param {String|Number} value 对象值 
+ * @param {Boolean} clear_prefix 清除前缀
+ * @param {Array} arr_table 关联的数据表
+ * @return {Object} 管理模型
+ */
+Mysql.prototype.dbs = async function(key, value, clear_prefix, ...arr_table) {
+	var lm = new Link_model({
+		key,
+		value,
+		clear_prefix
+	});
+	lm.sql = this;
+	for (var i = 0; i < arr_table.length; i++) {
+		await lm.add(arr_table[i]);
+	}
+	return lm;
+};
 
 /**
  * 设置配置参数
