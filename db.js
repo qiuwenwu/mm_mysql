@@ -16,8 +16,46 @@ class DB extends Sql {
 
 		// 数据库名
 		this.database = database;
+
+		// 事务中
+		this.task = 0;
+
+		// 事务SQL
+		this.task_sql = "";
 	}
 }
+
+/**
+ * 事务开始
+ */
+DB.prototype.start = async function(identifier = "point_1") {
+	this.task = 1;
+	return await this.exec("SET AUTOCOMMIT=0;BEGIN;");
+};
+
+/**
+ * 提交
+ */
+DB.prototype.commit = async function() {
+	this.task = 2;
+	return this.exec("COMMIT;");
+};
+
+/**
+ * 事务结束
+ */
+DB.prototype.end = async function() {
+	this.task = 3;
+};
+
+/**
+ * 滚回
+ */
+DB.prototype.back = async function(identifier = "point_1") {
+	this.task = 3;
+	await this.exec("ROLLBACK;");
+	return this.exec("SET AUTOCOMMIT=1;");
+};
 
 /**
  * @description 获取所有表名
@@ -171,8 +209,7 @@ DB.prototype.setType = function(field, type, value, not_null, auto) {
 				type += " UNSIGNED NOT NULL";
 				if (auto) {
 					type += " AUTO_INCREMENT";
-				}
-				else {
+				} else {
 					if (value) {
 						type += " DEFAULT '" + value + "'";
 					} else {
@@ -200,10 +237,9 @@ DB.prototype.addTable = async function(table, field, type, auto, commit = '') {
 	}
 	var sql = "CREATE TABLE IF NOT EXISTS `{0}` (`{1}` {2})".replace('{0}', table).replace(
 		'{1}', field).replace('{2}', this.setType(field, type, null, true, auto) + ' PRIMARY KEY');
-	if(commit){
+	if (commit) {
 		sql += " COMMENT = '" + commit + "';"
-	}
-	else {
+	} else {
 		sql += ";"
 	}
 	var bl = await this.exec(sql);
@@ -243,8 +279,7 @@ DB.prototype.field_add = async function(field, type, value, not_null, auto, isKe
 			sql = sql.replace('{0}', this.table).replace('{1}', field).replace('{2}', type);
 			if (isKey) {
 				sql += " , ADD PRIMARY KEY (`" + field + "`)";
-			}
-			else {
+			} else {
 				sql += ";";
 			}
 			return await this.exec(sql);
@@ -286,10 +321,9 @@ DB.prototype.field_set = async function(field, type, value, not_null, auto, isKe
 
 	sql = "ALTER TABLE `{0}` CHANGE COLUMN `{1}` `{2}` {3}";
 	sql = sql.replace('{0}', this.table).replace('{1}', field).replace('{2}', new_name).replaceAll('{3}', type);
-	if(isKey){
+	if (isKey) {
 		sql += ", DROP PRIMARY KEY, ADD PRIMARY KEY (" + new_name + ") USING BTREE;"
-	}
-	else {
+	} else {
 		sql += ";";
 	}
 	return await this.exec(sql);

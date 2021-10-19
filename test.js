@@ -226,26 +226,57 @@ var tpl = {
 // }
 
 
-// 算法排序
+// 合并操作
+// async function test() {
+// 	sql.config.log = true;
+// 	var db = sql.db();
+// 	// 取回上级对象，实际运用时看情况
+// 	var sql2 = db.parent();
+// 	// 取用户相关模型
+// 	var dbs = await sql2.dbs("user_id", 1, true, "user_account", "user_info", "service_member");
+	
+// 	var user = dbs.model;
+// 	// console.log(user);
+	
+// 	user.member.name = "美白";
+// 	// 合并属性
+// 	var u = dbs.merge();
+// 	// console.log(u);
+// 	u.age = 18;
+// 	u.name = "芬芬";
+	
+// 	// console.log(user);
+// }
+
+
+// 事务
 async function test() {
+	sql.config.log = true;
 	var db = sql.db();
-	// 取回上级对象，实际运用时看情况
-	var sql2 = db.parent();
-	// 取用户相关模型
-	var dbs = await sql2.dbs("user_id", 1, true, "user_account", "user_info", "service_member");
-	
-	var user = dbs.model;
-	console.log(user);
-	
-	user.member.name = "美白";
-	// 合并属性
-	var u = dbs.merge();
-	console.log(u);
-	u.age = 18;
-	u.name = "芬芬";
-	
+	// var db2 = sql.db();
+	await db.start();
+	console.log(db.task);
+	db.table = "cloud_user_flow";
+	var te = await db.add({
+		user_id: 1
+	});
+	var user = await db.getObj({
+		user_id: 1
+	});
+	var te1 = await db.add({
+		user_id1: 3
+	});
+	// db2.table = "cloud_user_flow";
+	// db2.add({
+	// 	user_id: 1,
+	// 	note: "哈哈"
+	// });
 	// console.log(user);
+	await db.commit();
+	console.log(db.sql);
+	await db.back();
 }
+
 
 // // 算法排序
 // async function test() {

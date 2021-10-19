@@ -3,7 +3,6 @@
  * @author <a href="http://qww.elins.cn">邱文武</a>
  * @version 1.2
  */
-
 const {
 	createPool
 } = require('mysql');
@@ -60,7 +59,9 @@ class Mysql {
 			// 数据库
 			database: "mm",
 			// 是否支持多个sql语句同时操作
-			multipleStatements: false
+			multipleStatements: false,
+			// 打印SQL
+			log: false
 		};
 
 		// 唯一标识符
@@ -78,6 +79,10 @@ class Mysql {
 		this.run = function(sql, val) {
 			var _this = this;
 			this.sql = sql;
+			if ($this.config.log) {
+				$.log.debug("SQL：", sql);
+			}
+
 			// 返回一个 Promise
 			return new Promise((resolve, reject) => {
 				$this.conn.getConnection(function(err, db) {
@@ -86,7 +91,9 @@ class Mysql {
 							code: 2003,
 							message: $.info(err).between('Error: ', '\n')
 						};
+						$.log.error("SQL error：", err);
 						resolve([]);
+						reject(err);
 					} else {
 						db.query(sql, val, (err, rows) => {
 							// 结束会话
@@ -96,7 +103,9 @@ class Mysql {
 									code: err.errno,
 									message: err.sqlMessage
 								};
+								$.log.error("SQL error：", err);
 								resolve([]);
+								reject(err);
 							} else {
 								_this.error = undefined;
 								resolve(rows);
@@ -115,8 +124,26 @@ class Mysql {
 		 */
 		this.exec = function(sql, val) {
 			var _this = this;
+			if (this.task) {
+				this.task_sql += sql + "\r\n";
+				if (this.task === 1) {
+					return this.task_sql;
+				} else if (this.task === 2) {
+					this.task = 0;
+					sql = this.task_sql.trim();
+					this.task_sql = '';
+				} else {
+					this.task = 0;
+					this.task_sql = '';
+					return;
+				}
+			}
 			this.sql = sql;
-
+			if ($this.config.log) {
+				$.log.debug("SQL：", sql);
+			}
+			// $this.conn.config.connectionConfig = false;
+			// console.log("测试", $this.conn.config.connectionConfig);
 			// 返回一个 Promise
 			return new Promise((resolve, reject) => {
 				$this.conn.getConnection(function(err, db) {
@@ -126,6 +153,8 @@ class Mysql {
 							message: $.info(err).between('Error: ', '\n')
 						};
 						resolve(-1);
+						reject(err);
+						$.log.error("SQL error：", err);
 					} else {
 						db.query(sql, val, (err, o) => {
 							if (err) {
@@ -134,6 +163,8 @@ class Mysql {
 									message: err.sqlMessage
 								};
 								resolve(-1);
+								reject(err);
+								$.log.error("SQL error：", err);
 							} else {
 								_this.error = undefined;
 								if (o.constructor == Array) {

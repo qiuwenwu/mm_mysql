@@ -3,7 +3,7 @@
  * @author <a href="http://qww.elins.cn">邱文武</a>
  * @version 1.2
  */
-require('mm_expand');
+require('mm_logs');
 const {
 	escape,
 	escapeId
