@@ -198,17 +198,11 @@ class Mysql {
 			});
 		};
 
-		var _this = this;
-
 		/**
 		 * @description 获取数据库管理器
 		 */
 		this.db = function() {
-			var db = new DB($this.config.database, $this.run, $this.exec);
-			db.parent = function() {
-				return _this;
-			}
-			return db;
+			return new DB($this);
 		};
 	}
 }

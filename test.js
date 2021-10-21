@@ -6,42 +6,42 @@ sql.setConfig({
 });
 sql.open();
 
-var tpl = {
-	"query": {
-		"state_min": "`state` >= '{0}'",
-		"state_max": "`state` <= '{0}'",
-		"vip_min": "`vip` >= '{0}'",
-		"vip_max": "`vip` <= '{0}'",
-		"gm_min": "`gm` >= '{0}'",
-		"gm_max": "`gm` <= '{0}'",
-		"mc_min": "`mc` >= '{0}'",
-		"mc_max": "`mc` <= '{0}'",
-		"create_time_min": "`create_time` >= '{0}'",
-		"create_time_max": "`create_time` <= '{0}'",
-		"login_time_min": "`login_time` >= '{0}'",
-		"login_time_max": "`login_time` <= '{0}'",
-		"salt": "`salt` like '%{0}%'",
-		"invite_code": "`invite_code` like '%{0}%'",
-		"phone": "`phone` like '%{0}%'",
-		"username": "`username` like '%{0}%'",
-		"nickname": "`nickname` like '%{0}%'",
-		"password": "`password` like '%{0}%'",
-		"email": "`email` like '%{0}%'",
-		"user_group": "`user_group` like '%{0}%'",
-		"user_admin": "`user_admin` like '%{0}%'",
-		"login_ip": "`login_ip` like '%{0}%'",
-		"signature": "`signature` like '%{0}%'",
-		"avatar": "`avatar` like '%{0}%'",
-		"friends": "`friends` like '%{0}%'",
-		"admin_group": "`admin_group` like '%{0}%'"
-	},
-	"update": {
-		"state_add": "`state` = `state` + '{0}'",
-		"vip_add": "`vip` = `vip` + '{0}'",
-		"gm_add": "`gm` = `gm` + '{0}'",
-		"mc_add": "`mc` = `mc` + '{0}'"
-	}
-};
+// var tpl = {
+// 	"query": {
+// 		"state_min": "`state` >= '{0}'",
+// 		"state_max": "`state` <= '{0}'",
+// 		"vip_min": "`vip` >= '{0}'",
+// 		"vip_max": "`vip` <= '{0}'",
+// 		"gm_min": "`gm` >= '{0}'",
+// 		"gm_max": "`gm` <= '{0}'",
+// 		"mc_min": "`mc` >= '{0}'",
+// 		"mc_max": "`mc` <= '{0}'",
+// 		"create_time_min": "`create_time` >= '{0}'",
+// 		"create_time_max": "`create_time` <= '{0}'",
+// 		"login_time_min": "`login_time` >= '{0}'",
+// 		"login_time_max": "`login_time` <= '{0}'",
+// 		"salt": "`salt` like '%{0}%'",
+// 		"invite_code": "`invite_code` like '%{0}%'",
+// 		"phone": "`phone` like '%{0}%'",
+// 		"username": "`username` like '%{0}%'",
+// 		"nickname": "`nickname` like '%{0}%'",
+// 		"password": "`password` like '%{0}%'",
+// 		"email": "`email` like '%{0}%'",
+// 		"user_group": "`user_group` like '%{0}%'",
+// 		"user_admin": "`user_admin` like '%{0}%'",
+// 		"login_ip": "`login_ip` like '%{0}%'",
+// 		"signature": "`signature` like '%{0}%'",
+// 		"avatar": "`avatar` like '%{0}%'",
+// 		"friends": "`friends` like '%{0}%'",
+// 		"admin_group": "`admin_group` like '%{0}%'"
+// 	},
+// 	"update": {
+// 		"state_add": "`state` = `state` + '{0}'",
+// 		"vip_add": "`vip` = `vip` + '{0}'",
+// 		"gm_add": "`gm` = `gm` + '{0}'",
+// 		"mc_add": "`mc` = `mc` + '{0}'"
+// 	}
+// };
 
 // // 测试模板修改
 // async function test_tpl_set() {
@@ -234,48 +234,83 @@ var tpl = {
 // 	var sql2 = db.parent();
 // 	// 取用户相关模型
 // 	var dbs = await sql2.dbs("user_id", 1, true, "user_account", "user_info", "service_member");
-	
+
 // 	var user = dbs.model;
 // 	// console.log(user);
-	
+
 // 	user.member.name = "美白";
 // 	// 合并属性
 // 	var u = dbs.merge();
 // 	// console.log(u);
 // 	u.age = 18;
 // 	u.name = "芬芬";
-	
+
 // 	// console.log(user);
 // }
 
+// 测试获取字段
+// async function test3(){
+// 	sql.config.log = true;
+// 	var db = sql.db();
+// 	var fields = await db.fields("cloud_user_flow");
+// 	console.log(fields);
+// }
+// test3();
+
+
+// 测试实例新对象获取
+// async function test3(){
+// 	sql.config.log = true;
+// 	var db = sql.db();
+// 	var db2 = db.new("cloud_user_flow");
+// 	var list = await db2.get();
+// 	console.log(list);
+// }
+// test3();
 
 // 事务
-async function test() {
-	sql.config.log = true;
-	var db = sql.db();
-	// var db2 = sql.db();
-	await db.start();
-	console.log(db.task);
-	db.table = "cloud_user_flow";
-	var te = await db.add({
-		user_id: 1
-	});
-	var user = await db.getObj({
-		user_id: 1
-	});
-	var te1 = await db.add({
-		user_id1: 3
-	});
-	// db2.table = "cloud_user_flow";
-	// db2.add({
-	// 	user_id: 1,
-	// 	note: "哈哈"
-	// });
-	// console.log(user);
-	await db.commit();
-	console.log(db.sql);
-	await db.back();
-}
+// async function test() {
+// 	sql.config.log = true;
+// 	var db = sql.db();
+// 	// var db2 = sql.db();
+// 	// await db.start();
+// 	// console.log(db.task);
+// 	db.table = "cloud_user_flow";
+// 	// var te = await db.add({
+// 	// 	user_id: 1
+// 	// });
+// 	// var user = await db.getObj({
+// 	// 	user_id: 1
+// 	// });
+// 	// var te1 = await db.add({
+// 	// 	user_id1: 3
+// 	// });
+
+// 	var bl = await db.set({
+// 		user_id_not: "1"
+// 	}, {
+// 		amount_del: 5,
+// 		balance_add: 1000,
+// 		state: 2
+// 	});
+
+// 	// db.table = "user_account";
+// 	// db.size = 0;
+// 	// var list_user = await db.get({
+// 	// 	user_id_has: "1,45,46,47,48"
+// 	// });
+// 	// console.log(list_user);
+
+// 	// db2.table = "cloud_user_flow";
+// 	// db2.add({
+// 	// 	user_id: 1,
+// 	// 	note: "哈哈"
+// 	// });
+// 	// console.log(user);
+// 	// await db.commit();
+// 	console.log(db.sql);
+// 	// await db.back();
+// }
 
 
 // // 算法排序
@@ -283,7 +318,7 @@ async function test() {
 // 	var db = sql.db();
 // 	// db.table = "user_account"
 // 	// var ret = await db.get({}, "score desc", "username,vip+gm*3 score");
-	
+
 // 	db.table = "service_order";
 // 	db.page = 1;
 // 	db.size = 10;
@@ -293,7 +328,7 @@ async function test() {
 // 		time_create_min: "2021-07-26 00:00:00",
 // 		time_create_max: "2021-07-27 00:00:00",
 // 	}, "user_id", "score");
-	
+
 // 	console.log(ret);
 // 	console.log(db.sql);
 // 	console.log(db.error);
@@ -346,7 +381,7 @@ async function test() {
 // 	// console.log("删除：" + JSON.stringify(ret), db.error);
 // }
 
-test();
+// test();
 
 
 

@@ -400,23 +400,31 @@ Sql.prototype.toWhere = function(obj, like) {
 		for (var k in obj) {
 			var val = obj[k];
 			if (k.endWith('_min')) {
-				where += " and " + this.escapeId(k.replace('_min', '')) + ">=" + this.escape(val);
+				where += " and " + this.escapeId(k.replace('_min', '')) + " >= " + this.escape(val);
 			} else if (k.endWith('_max')) {
-				where += " and " + this.escapeId(k.replace('_max', '')) + "<=" + this.escape(val);
+				where += " and " + this.escapeId(k.replace('_max', '')) + " <= " + this.escape(val);
+			} else if (k.endWith('_not')) {
+				where += " and " + this.escapeId(k.replace('_not', '')) + " != " + this.escape(val);
+			} else if (k.endWith('_has')) {
+				where += " and " + this.escapeId(k.replace('_has', '')) + " in (" + val + ")";
 			} else if (typeof(val) === "string" && !/^[0-9]+$/.test(val)) {
 				where += " and " + this.escapeId(k) + " LIKE '%" + this.escape(val).trim("'") + "%'"
 			} else {
-				where += " and " + this.escapeId(k) + "=" + val
+				where += " and " + this.escapeId(k) + " = " + val
 			}
 		}
 	} else {
 		for (var k in obj) {
 			var val = obj[k];
 			if (k.endWith('_min')) {
-				where += " and " + this.escapeId(k.replace('_min', '')) + ">=" + this.escape(val.replace('_min',
+				where += " and " + this.escapeId(k.replace('_min', '')) + " >= " + this.escape(val.replace('_min',
 					''));
 			} else if (k.endWith('_max')) {
-				where += " and " + this.escapeId(k.replace('_max', '')) + "<=" + this.escape(val);
+				where += " and " + this.escapeId(k.replace('_max', '')) + " <= " + this.escape(val);
+			} else if (k.endWith('_not')) {
+				where += " and " + this.escapeId(k.replace('_not', '')) + " != " + this.escape(val);
+			} else if (k.endWith('_has')) {
+				where += " and " + this.escapeId(k.replace('_has', '')) + " in (" + val.replace(/`/gi, "") + ")";
 			} else {
 				where += " and " + this.escapeId(k) + "=" + this.escape(val);
 			}
@@ -433,7 +441,16 @@ Sql.prototype.toWhere = function(obj, like) {
 Sql.prototype.toSet = function(obj) {
 	var set = "";
 	for (var k in obj) {
-		set += "," + this.escapeId(k) + "=" + this.escape(obj[k]);
+		var val = this.escape(obj[k]);
+		if (k.endWith('_add')) {
+			var k2 = this.escapeId(k.replace('_add', ''));
+			set += "," + k2 + " = " + k2 + " + " + val;
+		} else if (k.endWith('_del')) {
+			var k3 = this.escapeId(k.replace('_del', ''));
+			set += "," + k3 + " = " + k3 + " - " + val;
+		} else {
+			set += "," + this.escapeId(k) + " = " + val;
+		}
 	}
 	return set.replace(",", "");
 };
