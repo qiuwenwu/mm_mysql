@@ -11,17 +11,29 @@ class DB extends Sql {
 	 */
 	constructor(mysql) {
 		super(mysql.run, mysql.exec);
-
-		// 数据库名
-		this.mysql = mysql;
-
 		// 事务中
 		this.task = 0;
 
 		// 事务SQL
 		this.task_sql = "";
+
+		/**
+		 * 获取上级
+		 * @return {Object} 返回上级管理器
+		 */
+		this.parent = function() {
+			return mysql;
+		};
 	}
 }
+
+/**
+ * 获取数据库名
+ * @return {String} 数据库
+ */
+DB.prototype.database = function() {
+	return this.parent().config.database;
+};
 
 /**
  * 构建新管理器
@@ -30,7 +42,7 @@ class DB extends Sql {
  * @return {Object} 返回管理器
  */
 DB.prototype.new = function(table, key) {
-	var db = this.mysql.db();
+	var db = this.parent().db();
 	db.table = table;
 	if (key) {
 		db.key = key;
@@ -39,14 +51,6 @@ DB.prototype.new = function(table, key) {
 		db.key = arr[arr.length - 1] + "_id";
 	}
 	return db;
-};
-
-/**
- * 获取上级
- * @return {Object} 返回上级管理器
- */
-DB.prototype.parent = function() {
-	return this.mysql;
 };
 
 /**
@@ -88,7 +92,7 @@ DB.prototype.back = async function(identifier = "point_1") {
  */
 DB.prototype.tables = async function(table) {
 	var list = await this.run("show tables");
-	var key = 'Tables_in_' + this.mysql.config.database;
+	var key = 'Tables_in_' + this.database();
 	if (table) {
 		list = list.search(table, key);
 	}
@@ -107,7 +111,7 @@ DB.prototype.fields = async function(table, field_name) {
 	var field =
 		'COLUMN_NAME as `name`,ORDINAL_POSITION as `cid`,COLUMN_DEFAULT as `dflt_value`,IS_NULLABLE as `notnull`,COLUMN_TYPE as `type`,COLUMN_KEY as `pk`,EXTRA as `auto`,COLUMN_COMMENT as `note`';
 	var sql = "select " + field + " from information_schema.COLUMNS where `table_name` = '" + table +
-		"' and `table_schema` = '" + this.mysql.config.database + "'";
+		"' and `table_schema` = '" + this.database() + "'";
 	if (field_name) {
 		sql += " AND COLUMN_NAME='" + field_name + "'";
 	}
@@ -294,7 +298,7 @@ DB.prototype.clearTable = async function(reset = true, table = '') {
 DB.prototype.field_add = async function(field, type, value, not_null, auto, isKey) {
 	var sql =
 		"SELECT COUNT(*) as `count` FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='{0}' AND table_name='{1}' AND COLUMN_NAME='{2}'";
-	sql = sql.replace('{0}', this.mysql.config.database).replace('{1}', this.table).replace('{2}', field);
+	sql = sql.replace('{0}', this.database()).replace('{1}', this.table).replace('{2}', field);
 	var arr = await this.run(sql);
 	if (arr && arr.length > 0) {
 		if (arr[0].count == 0) {
@@ -326,7 +330,7 @@ DB.prototype.field_add = async function(field, type, value, not_null, auto, isKe
 DB.prototype.field_set = async function(field, type, value, not_null, auto, isKey, new_name) {
 	var sql =
 		"SELECT COUNT(*) as `count` FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='{0}' AND table_name='{1}' AND COLUMN_NAME='{2}'";
-	sql = sql.replace('{0}', this.mysql.config.database).replace('{1}', this.table).replace('{2}', field);
+	sql = sql.replace('{0}', this.database()).replace('{1}', this.table).replace('{2}', field);
 	var arr = await this.run(sql);
 	if (arr && arr.length > 0) {
 		if (arr[0].count == 0) {
@@ -361,7 +365,7 @@ DB.prototype.field_set = async function(field, type, value, not_null, auto, isKe
 DB.prototype.field_del = async function(field) {
 	var sql =
 		"SELECT COUNT(*) as `count` FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='{0}' AND table_name='{1}' AND COLUMN_NAME='{2}'";
-	sql = sql.replace('{0}', this.mysql.config.database).replace('{1}', this.table).replace('{2}', field);
+	sql = sql.replace('{0}', this.database()).replace('{1}', this.table).replace('{2}', field);
 	var arr = await this.run(sql);
 	if (arr && arr.length > 0) {
 		if (arr[0].count > 0) {

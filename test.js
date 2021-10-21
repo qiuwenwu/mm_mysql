@@ -249,13 +249,13 @@ sql.open();
 // }
 
 // 测试获取字段
-// async function test3(){
-// 	sql.config.log = true;
-// 	var db = sql.db();
-// 	var fields = await db.fields("cloud_user_flow");
-// 	console.log(fields);
-// }
-// test3();
+async function test3(){
+	sql.config.log = true;
+	var db = sql.db();
+	var fields = await db.fields("cloud_user_flow");
+	console.log(fields);
+}
+test3();
 
 
 // 测试实例新对象获取
