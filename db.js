@@ -221,7 +221,14 @@ DB.prototype.setType = function(field, type, value, not_null, auto) {
 				type += " DEFAULT 0";
 			}
 			break;
+		case "longtext":
 		case "text":
+			if (type == "text") {
+				type = "text NULL"
+			}
+			else if (type == "longtext") {
+				type = "longtext NULL"
+			}
 			break;
 		default:
 			if (type.indexOf('var') !== -1) {
@@ -340,7 +347,7 @@ DB.prototype.field_set = async function(field, type, value, not_null, auto, isKe
 
 	var type = this.setType(field, type, value, not_null, auto);
 	if (type.has('text')) {
-		type = type.replace('NOT NULL', '');
+		type = type.replace('NOT NULL', '').replace("DEFAULT ''", "");
 	}
 
 	if (!new_name) {
