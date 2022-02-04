@@ -2,7 +2,7 @@
 	"host": "localhost",
 	"port": 3306,
 	"user": "root",
-	"password": "asd123",
+	"password": "asd159357",
 	"database": "mm",
 	"multipleStatements": true
 }

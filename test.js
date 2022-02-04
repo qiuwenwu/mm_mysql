@@ -1,47 +1,47 @@
 const Mysql = require('./index.js').Mysql;
 
-var sql = new Mysql();
-sql.setConfig({
-	multipleStatements: true
-});
-sql.open();
+// var sql = new Mysql();
+// sql.setConfig({
+// 	multipleStatements: true
+// });
+// sql.open();
 
-// var tpl = {
-// 	"query": {
-// 		"state_min": "`state` >= '{0}'",
-// 		"state_max": "`state` <= '{0}'",
-// 		"vip_min": "`vip` >= '{0}'",
-// 		"vip_max": "`vip` <= '{0}'",
-// 		"gm_min": "`gm` >= '{0}'",
-// 		"gm_max": "`gm` <= '{0}'",
-// 		"mc_min": "`mc` >= '{0}'",
-// 		"mc_max": "`mc` <= '{0}'",
-// 		"create_time_min": "`create_time` >= '{0}'",
-// 		"create_time_max": "`create_time` <= '{0}'",
-// 		"login_time_min": "`login_time` >= '{0}'",
-// 		"login_time_max": "`login_time` <= '{0}'",
-// 		"salt": "`salt` like '%{0}%'",
-// 		"invite_code": "`invite_code` like '%{0}%'",
-// 		"phone": "`phone` like '%{0}%'",
-// 		"username": "`username` like '%{0}%'",
-// 		"nickname": "`nickname` like '%{0}%'",
-// 		"password": "`password` like '%{0}%'",
-// 		"email": "`email` like '%{0}%'",
-// 		"user_group": "`user_group` like '%{0}%'",
-// 		"user_admin": "`user_admin` like '%{0}%'",
-// 		"login_ip": "`login_ip` like '%{0}%'",
-// 		"signature": "`signature` like '%{0}%'",
-// 		"avatar": "`avatar` like '%{0}%'",
-// 		"friends": "`friends` like '%{0}%'",
-// 		"admin_group": "`admin_group` like '%{0}%'"
-// 	},
-// 	"update": {
-// 		"state_add": "`state` = `state` + '{0}'",
-// 		"vip_add": "`vip` = `vip` + '{0}'",
-// 		"gm_add": "`gm` = `gm` + '{0}'",
-// 		"mc_add": "`mc` = `mc` + '{0}'"
-// 	}
-// };
+var tpl = {
+	"query": {
+		"state_min": "`state` >= '{0}'",
+		"state_max": "`state` <= '{0}'",
+		"vip_min": "`vip` >= '{0}'",
+		"vip_max": "`vip` <= '{0}'",
+		"gm_min": "`gm` >= '{0}'",
+		"gm_max": "`gm` <= '{0}'",
+		"mc_min": "`mc` >= '{0}'",
+		"mc_max": "`mc` <= '{0}'",
+		"create_time_min": "`create_time` >= '{0}'",
+		"create_time_max": "`create_time` <= '{0}'",
+		"login_time_min": "`login_time` >= '{0}'",
+		"login_time_max": "`login_time` <= '{0}'",
+		"salt": "`salt` like '%{0}%'",
+		"invite_code": "`invite_code` like '%{0}%'",
+		"phone": "`phone` like '%{0}%'",
+		"username": "`username` like '%{0}%'",
+		"nickname": "`nickname` like '%{0}%'",
+		"password": "`password` like '%{0}%'",
+		"email": "`email` like '%{0}%'",
+		"user_group": "`user_group` like '%{0}%'",
+		"user_admin": "`user_admin` like '%{0}%'",
+		"login_ip": "`login_ip` like '%{0}%'",
+		"signature": "`signature` like '%{0}%'",
+		"avatar": "`avatar` like '%{0}%'",
+		"friends": "`friends` like '%{0}%'",
+		"admin_group": "`admin_group` like '%{0}%'"
+	},
+	"update": {
+		"state_add": "`state` = `state` + '{0}'",
+		"vip_add": "`vip` = `vip` + '{0}'",
+		"gm_add": "`gm` = `gm` + '{0}'",
+		"mc_add": "`mc` = `mc` + '{0}'"
+	}
+};
 
 // // 测试模板修改
 // async function test_tpl_set() {
@@ -68,137 +68,140 @@ sql.open();
 // }
 // test_tpl_set();
 
-// // 测试模板查询
-// async function test_tpl_get() {
-// 	var sql = new Mysql();
-// 	sql.open();
-// 	db = sql.db();
-// 	var num = 0;
-// 	db.table = 'user_account';
-// 	var query = {
-// 		gm: 5,
-// 		username: 'ad%m'
-// 	};
-// 	db.page = 1;
-// 	db.size = 5;
-// 	var query_str = db.tpl_query(query, tpl.query);
-// 	ret = await db.getSql(query_str, "`user_id` desc", "*");
-// 	console.log('查询结果', ret);
-// 	console.log('SQL语句', db.sql);
-// }
-// test_tpl_get();
-
-async function addField() {
+// 测试模板查询
+async function test_tpl_get() {
 	var sql = new Mysql();
 	sql.open();
 	db = sql.db();
 	var num = 0;
-	db.table = 'test';
-	// num = await db.field_del('set6');
-	// num = await db.field_add('set6', 'str');
-	var bl = await db.addTable('test', 'uid', 'int', true, '测试表');
-	console.log("创建表：" + num);
-	if (bl < 0) {
-		console.log("SQL：" + db.sql);
-	}
-	// num = await db.field_add("uid", 'int', 0, true, true, true);
-	// console.log("uid结果：" + num);
-	// if (num < 0) {
-	// 	console.log("SQL：" + db.sql);
-	// }
-
-	num = await db.field_add("name", 'varchar(18)', '', true);
-	console.log("name结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("username", 'varchar(18)', '', true);
-	console.log("username结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("password", 'string', '', true);
-	console.log("password结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("email", 'varchar', null);
-	console.log("email结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("age", 'smallint', 0);
-	console.log("age结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("sex", 'tinyint', 0);
-	console.log("sex结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("create_time", 'timestamp', null, true, true);
-	console.log("create_time结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("update_time", 'timestamp', null, true, true);
-	console.log("update_time结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("last_time", 'timestamp');
-	console.log("last_time结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("birthday", 'date', '2020-06-28', true);
-	console.log("birthday结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("note", 'text', '123123', false);
-	console.log("note结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
+	db.table = 'user_account';
+	var query = {
+		gm_min: 2,
+		username: 'ad%m'
+	};
+	db.page = 1;
+	db.size = 5;
+	var query_str = db.tpl_query(query, tpl.query);
+	ret = await db.getCountSql(query_str, "`user_id` desc", "*");
+	console.log('查询结果', ret);
+	console.log('SQL语句', db.sql);
 	
-	num = await db.field_add("content", 'longtext', '123123', false);
-	console.log("content结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-	
-	num = await db.field_add("cycle", 'time', null, true);
-	console.log("cycle结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("money", 'double', 0);
-	console.log("money结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
-
-	num = await db.field_add("like", 'string', '篮球 足球 乒乓球');
-	console.log("like结果：" + num);
-	if (num < 0) {
-		console.log("SQL：" + db.sql);
-	}
+	ret = await db.groupSumSql(query_str, "mc", "gm");
+	console.log('求和查询结果', ret);
 }
+test_tpl_get();
 
-addField();
+// async function addField() {
+// 	var sql = new Mysql();
+// 	sql.open();
+// 	db = sql.db();
+// 	var num = 0;
+// 	db.table = 'test';
+// 	// num = await db.field_del('set6');
+// 	// num = await db.field_add('set6', 'str');
+// 	var bl = await db.addTable('test', 'uid', 'int', true, '测试表');
+// 	console.log("创建表：" + num);
+// 	if (bl < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// 	// num = await db.field_add("uid", 'int', 0, true, true, true);
+// 	// console.log("uid结果：" + num);
+// 	// if (num < 0) {
+// 	// 	console.log("SQL：" + db.sql);
+// 	// }
+
+// 	num = await db.field_add("name", 'varchar(18)', '', true);
+// 	console.log("name结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("username", 'varchar(18)', '', true);
+// 	console.log("username结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("password", 'string', '', true);
+// 	console.log("password结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("email", 'varchar', null);
+// 	console.log("email结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("age", 'smallint', 0);
+// 	console.log("age结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("sex", 'tinyint', 0);
+// 	console.log("sex结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("create_time", 'timestamp', null, true, true);
+// 	console.log("create_time结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("update_time", 'timestamp', null, true, true);
+// 	console.log("update_time结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("last_time", 'timestamp');
+// 	console.log("last_time结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("birthday", 'date', '2020-06-28', true);
+// 	console.log("birthday结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("note", 'text', '123123', false);
+// 	console.log("note结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+	
+// 	num = await db.field_add("content", 'longtext', '123123', false);
+// 	console.log("content结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+	
+// 	num = await db.field_add("cycle", 'time', null, true);
+// 	console.log("cycle结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("money", 'double', 0);
+// 	console.log("money结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+
+// 	num = await db.field_add("like", 'string', '篮球 足球 乒乓球');
+// 	console.log("like结果：" + num);
+// 	if (num < 0) {
+// 		console.log("SQL：" + db.sql);
+// 	}
+// }
+
+// addField();
 
 
 // async function test() {
@@ -255,13 +258,13 @@ addField();
 // }
 
 // 测试获取字段
-async function test3(){
-	sql.config.log = true;
-	var db = sql.db();
-	var fields = await db.fields("cloud_user_flow");
-	console.log(fields);
-}
-test3();
+// async function test3(){
+// 	sql.config.log = true;
+// 	var db = sql.db();
+// 	var fields = await db.fields("cloud_user_flow");
+// 	console.log(fields);
+// }
+// test3();
 
 
 // 测试实例新对象获取

@@ -138,6 +138,8 @@ class Sql {
 				"count_ret": "count_ret"
 			}
 		};
+
+		this.like = false;
 	}
 }
 
@@ -318,8 +320,7 @@ Sql.prototype.getCountSql = async function(where, sort, view) {
  * @param {String} sort 排序方式
  * @return {Promise|Object} 查询到的内容列表和符合条件总数
  */
-Sql.prototype.groupMath = async function(where, groupby, view, sort, method) {
-	var where = this.toWhere(where, false);
+Sql.prototype.groupMathSql = async function(where, groupby, view, sort, method) {
 	if (!view) {
 		view = "*"
 	}
@@ -350,7 +351,8 @@ Sql.prototype.groupMath = async function(where, groupby, view, sort, method) {
 		sql += " limit " + start + ',' + this.size;
 	}
 	return await this.run(sql);
-};
+}
+
 
 /**
  * @description 分组求平均值
@@ -360,8 +362,8 @@ Sql.prototype.groupMath = async function(where, groupby, view, sort, method) {
  * @param {String} sort 排序方式
  * @return {Promise|Object} 查询到的内容列表和符合条件总数
  */
-Sql.prototype.groupAvg = async function(where, groupby, view, sort) {
-	return await this.groupMath(where, groupby, view, sort, "AVG");
+Sql.prototype.groupAvgSql = async function(where, groupby, view, sort) {
+	return await this.groupMathSql(where, groupby, view, sort, "AVG");
 };
 
 /**
@@ -372,8 +374,8 @@ Sql.prototype.groupAvg = async function(where, groupby, view, sort) {
  * @param {String} sort 排序方式
  * @return {Promise|Object} 查询到的内容列表和符合条件总数
  */
-Sql.prototype.groupSum = async function(where, groupby, view, sort) {
-	return await this.groupMath(where, groupby, view, sort, "SUM");
+Sql.prototype.groupSumSql = async function(where, groupby, view, sort) {
+	return await this.groupMathSql(where, groupby, view, sort, "SUM");
 };
 
 /**
@@ -383,8 +385,57 @@ Sql.prototype.groupSum = async function(where, groupby, view, sort) {
  * @param {String} view 返回的字段
  * @return {Promise|Object} 查询到的内容列表和符合条件总数
  */
-Sql.prototype.groupCount = async function(where, groupby, view, sort) {
-	return await this.groupMath(where, groupby, view, sort, "COUNT");
+Sql.prototype.groupCountSql = async function(where, groupby, view, sort) {
+	return await this.groupMathSql(where, groupby, view, sort, "COUNT");
+};
+
+
+/**
+ * @description 统计学
+ * @param {Object} query 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @param {String} sort 排序方式
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupMath = async function(query, groupby, view, sort, method) {
+	var where = this.toWhere(query, this.like);
+	return await this.groupMathSql(where, groupby, view, sort, method);
+};
+
+/**
+ * @description 分组求平均值
+ * @param {Object} query 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @param {String} sort 排序方式
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupAvg = async function(query, groupby, view, sort) {
+	return await this.groupMath(query, groupby, view, sort, "AVG");
+};
+
+/**
+ * @description 分组合计数值
+ * @param {Object} query 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @param {String} sort 排序方式
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupSum = async function(query, groupby, view, sort) {
+	return await this.groupMath(query, groupby, view, sort, "SUM");
+};
+
+/**
+ * @description 分组合计不同条数
+ * @param {Object} query 查询条件
+ * @param {String} groupby 分组的字段
+ * @param {String} view 返回的字段
+ * @return {Promise|Object} 查询到的内容列表和符合条件总数
+ */
+Sql.prototype.groupCount = async function(query, groupby, view, sort) {
+	return await this.groupMath(query, groupby, view, sort, "COUNT");
 };
 
 /* ===  sql语句拼接函数  === */
@@ -396,6 +447,9 @@ Sql.prototype.groupCount = async function(where, groupby, view, sort) {
  */
 Sql.prototype.toWhere = function(obj, like) {
 	var where = "";
+	if (like === undefined) {
+		like = this.like;
+	}
 	if (like) {
 		for (var k in obj) {
 			var val = obj[k];
@@ -832,7 +886,7 @@ Sql.prototype.model = function(model) {
  * @param {Boolean} like 是否like匹配
  * @return {Promise|Array} 查询结果
  */
-Sql.prototype.getObj = async function(query, sort, view, like = false) {
+Sql.prototype.getObj = async function(query, sort, view, like) {
 	this.page = 1;
 	this.size = 1;
 	var key = this.key;
@@ -840,6 +894,9 @@ Sql.prototype.getObj = async function(query, sort, view, like = false) {
 		if (view && view.indexOf(key) === -1 && view.indexOf('*') === -1) {
 			view += "," + this.escapeId(key);
 		}
+	}
+	if (like === undefined) {
+		like = this.like;
 	}
 	var sql = this.toGetSql(query, sort, view, like);
 	var list = await this.run(sql);
