@@ -856,13 +856,13 @@ Sql.prototype.model = function(model) {
 				var n = obj[prop];
 				var cha = value - n;
 				if (cha > 0) {
-					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=`" +
+					_this.setSql("`" + _this.key + "`=" + obj[_this.key], "`" + prop + "`=`" +
 						prop + "` + " + cha);
 				} else if (cha < 0) {
-					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=`" +
+					_this.setSql("`" + _this.key + "`=" + obj[_this.key], "`" + prop + "`=`" +
 						prop + "` - " + (-cha));
 				} else {
-					_this.setSql("`" + _this.key + "`=" + obj[_this.key] + "", "`" + prop + "`=" +
+					_this.setSql("`" + _this.key + "`=" + obj[_this.key], "`" + prop + "`=" +
 						value);
 				}
 			} else {
